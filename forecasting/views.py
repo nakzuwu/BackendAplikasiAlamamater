@@ -28,27 +28,29 @@ def api_forecast(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Gunakan metode POST.'}, status=405)
 
+    import pandas as pd
+    from io import TextIOWrapper, BytesIO
+
     df = None
 
-    # 🧩 1. Input via file (CSV / Excel)
+    # 1. Input via file
     if 'file' in request.FILES:
         file = request.FILES['file']
         filename = file.name.lower()
-
         try:
             if filename.endswith('.csv'):
                 df = pd.read_csv(TextIOWrapper(file.file, encoding='utf-8'))
-            elif filename.endswith('.xls') or filename.endswith('.xlsx'):
+            elif filename.endswith(('.xls', '.xlsx')):
                 df = pd.read_excel(BytesIO(file.read()))
             else:
                 return JsonResponse({'error': 'Format file tidak didukung. Gunakan CSV atau Excel.'}, status=400)
         except Exception as e:
             return JsonResponse({'error': f'Gagal membaca file: {str(e)}'}, status=400)
 
-    # 🧩 2. Input manual JSON
+    # 2. Input manual JSON
     elif request.content_type == 'application/json':
+        import json
         try:
-            import json
             body = json.loads(request.body)
             df = pd.DataFrame(body)
         except Exception as e:
@@ -56,7 +58,7 @@ def api_forecast(request):
     else:
         return JsonResponse({'error': 'Harap kirim file CSV/Excel atau JSON valid.'}, status=400)
 
-    # 🧠 3. Deteksi kolom tahun
+    # 3. Deteksi kolom tahun
     tahun_col = None
     for col in df.columns:
         if "tahun" in col.lower():
@@ -68,25 +70,28 @@ def api_forecast(request):
     else:
         years = list(range(1, len(df) + 1))
 
-    # 🧠 4. Filter kolom ukuran jas
-    ukuran_cols = [c for c in df.columns if c != tahun_col and c.upper() in ['S', 'M', 'L', 'XL', 'XXL']]
+    # 4. Ambil semua kolom ukuran otomatis (selain tahun)
+    ukuran_cols = [c for c in df.columns if c != tahun_col]
     if not ukuran_cols:
-        return JsonResponse({'error': 'Tidak ditemukan kolom ukuran (S, M, L, XL, XXL).'}, status=400)
+        return JsonResponse({'error': 'Tidak ditemukan kolom ukuran.'}, status=400)
 
-    # 🔢 5. Proses per kolom
+    # 5. Proses forecast
     results = []
     chart_data = {}
+    next_year = None
 
     for col in ukuran_cols:
-        data = df[col].dropna().astype(float).tolist()
-        if len(data) < 3:
+        try:
+            data = df[col].dropna().astype(float).tolist()
+        except:
+            continue
+        if len(data) < 2:  # minimal 2 data
             continue
 
         best_alpha = None
         best_mape = float('inf')
         best_forecast = None
 
-        # Cari alpha terbaik
         for alpha in [i/10 for i in range(1, 10)]:
             forecast_values = single_exponential_smoothing(data, alpha)
             actual = data[1:]
@@ -116,40 +121,54 @@ def api_forecast(request):
 
         chart_data[col] = [round(x, 2) for x in best_forecast] + [round(forecast_next, 2)]
 
-    # 🎯 TAMBAHKAN BEST_MAPE DI SINI!
-    if results:
-        best_mape_all = min([r['mape'] for r in results])
-        # Tambah tahun prediksi ke chart
-        if next_year not in years:
-            years.append(next_year)
-    else:
-        best_mape_all = None
+    best_mape_all = min([r['mape'] for r in results]) if results else None
+    if next_year and next_year not in years:
+        years.append(next_year)
 
     return JsonResponse({
         'status': 'success',
         'results': results,
-        'best_mape': best_mape_all,  
+        'best_mape': best_mape_all,
         'chart_data': chart_data,
         'years': years
     }, status=200, json_dumps_params={'ensure_ascii': False})
 
+
 def forecast(request):
     if request.method == 'POST':
-        if 'file' not in request.FILES:
+        import pandas as pd
+        from io import TextIOWrapper, StringIO
+
+        # 1. Input CSV
+        if 'file' in request.FILES:
+            file = request.FILES['file']
+            df = pd.read_csv(TextIOWrapper(file.file, encoding='utf-8'))
+
+        # 2. Input manual (textarea)
+        elif 'data' in request.POST and request.POST['data'].strip():
+            data_text = request.POST['data']
+            data_rows = []
+            for row in data_text.split(';'):
+                data_rows.append([x.strip() for x in row.split(',')])
+
+            # Buat DataFrame fleksibel
+            headers = data_rows[0] if 'Tahun' in data_rows[0][0] else ['Tahun'] + [f'Ukuran{i}' for i in range(1, len(data_rows[0]))]
+            df = pd.DataFrame(data_rows, columns=headers)
+
+            # Konversi tipe data (tahun=int, ukuran=float)
+            df['Tahun'] = df['Tahun'].astype(int)
+            for col in df.columns:
+                if col != 'Tahun':
+                    df[col] = df[col].astype(float)
+        else:
             return render(request, 'forecasting/result.html', {
-                'error': 'Harap upload file CSV yang berisi kolom ukuran jas.'
+                'error': 'Harap upload CSV atau masukkan data manual.'
             })
 
-        file = request.FILES['file']
-        df = pd.read_csv(TextIOWrapper(file.file, encoding='utf-8'))
-        print("=== Kolom CSV ===")
-        print(df.columns.tolist())
-
-
-        # Deteksi kolom tahun
+        # ===== Deteksi kolom tahun =====
         tahun_col = None
         for col in df.columns:
-            if "tahun" in col.lower():
+            if 'tahun' in col.lower():
                 tahun_col = col
                 break
 
@@ -158,28 +177,28 @@ def forecast(request):
         else:
             years = list(range(1, len(df) + 1))
 
-        # Filter kolom ukuran jas
-        ukuran_cols = [c for c in df.columns if c != tahun_col and c.upper() in ['S','M','L','XL','XXL']]
-
+        # ===== Ambil semua kolom ukuran otomatis =====
+        ukuran_cols = [c for c in df.columns if c != tahun_col]
         if not ukuran_cols:
-            return render(request, 'forecasting/result.html', {
-                'error': 'Harap upload file CSV yang berisi kolom S, M, L, XL, dan XXL.'
-            })
+            return render(request, 'forecasting/result.html', {'error': 'Tidak ada kolom ukuran.'})
 
+        # ===== Forecast =====
         results = []
         chart_data = {}
+        next_year = None
 
         for col in ukuran_cols:
-            data = df[col].dropna().astype(float).tolist()
-
-            if len(data) < 3:
+            try:
+                data = df[col].dropna().astype(float).tolist()
+            except:
+                continue
+            if len(data) < 2:
                 continue
 
             best_alpha = None
             best_mape = float('inf')
             best_forecast = None
 
-            # 🔍 Cari alpha terbaik
             for alpha in [i/10 for i in range(1, 10)]:
                 forecast_values = single_exponential_smoothing(data, alpha)
                 actual = data[1:]
@@ -196,7 +215,6 @@ def forecast(request):
             next_year = tahun_last + 1
             forecast_next = best_alpha * actual_last + (1 - best_alpha) * forecast_last
 
-            # Tambah ke hasil
             results.append({
                 'ukuran': col,
                 'alpha': round(best_alpha, 1),
@@ -210,8 +228,7 @@ def forecast(request):
 
             chart_data[col] = [round(x, 2) for x in best_forecast] + [round(forecast_next, 2)]
 
-        # Tambah tahun prediksi ke chart
-        if next_year not in years:
+        if next_year and next_year not in years:
             years.append(next_year)
 
         best_mape_all = min([r['mape'] for r in results]) if results else None

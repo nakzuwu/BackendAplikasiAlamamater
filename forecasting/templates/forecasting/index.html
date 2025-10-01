@@ -305,11 +305,15 @@
         <h4 class="text-secondary mb-4">
           <i class="bi bi-keyboard header-icon"></i>Input Manual
         </h4>
-        <form action="/forecast/" method="POST">
+        <form
+          method="POST"
+          enctype="multipart/form-data"
+          action="{% url 'forecast' %}"
+        >
           {% csrf_token %}
           <div class="mb-4">
             <label for="data" class="form-label"
-              >Masukkan Data Permintaan (Pisahkan dengan koma)</label
+              >Masukkan Data Permintaan (Format: Tahun,S,M,L,XL,XXL)</label
             >
             <div class="input-icon">
               <i class="bi bi-list-ol"></i>
@@ -317,13 +321,13 @@
                 class="form-control"
                 name="data"
                 rows="4"
-                placeholder="Contoh: 500,520,510,530,540,560,550,570,580,600"
+                placeholder="Contoh: 2019,85,120,150,90,55;2020,90,125,155,95,60"
               ></textarea>
             </div>
             <div class="form-text mt-2">
               <i class="bi bi-info-circle me-1"></i>
-              Masukkan data historis permintaan jas almamater dalam urutan
-              kronologis
+              Pisahkan setiap tahun dengan titik koma (;), dan nilai dengan koma
+              (,)
             </div>
           </div>
           <button type="submit" class="btn btn-primary w-100 py-3">
