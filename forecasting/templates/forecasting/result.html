@@ -243,6 +243,45 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
 
+      /* New Styles for Calculation Section */
+      .calculation-card {
+        background: var(--bg-secondary);
+        border-left: 4px solid var(--accent-primary);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+      }
+
+      .formula {
+        font-family: "Courier New", monospace;
+        background: var(--bg-primary);
+        padding: 12px;
+        border-radius: 6px;
+        margin: 8px 0;
+        border: 1px solid var(--border-color);
+        color: var(--accent-primary);
+        font-weight: 500;
+      }
+
+      .calculation-step {
+        background: var(--bg-secondary);
+        padding: 10px;
+        border-radius: 6px;
+        margin: 5px 0;
+        border-left: 3px solid var(--success);
+      }
+
+      .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+        color: white;
+      }
+
+      .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+      }
+
       @media (max-width: 768px) {
         .container {
           margin-top: 70px;
@@ -302,6 +341,56 @@
         </div>
       </div>
 
+      <!-- NEW: Rumusan Perhitungan Section -->
+      <div class="card p-4 mb-5">
+        <h4 class="text-secondary mb-4 text-center">
+          <i class="bi bi-calculator header-icon"></i>Rumusan Perhitungan
+          Forecasting
+        </h4>
+
+        <div class="calculation-card">
+          <h5 class="text-primary">Metode: Single Exponential Smoothing</h5>
+          <p class="text-muted">
+            Metode ini menggunakan pembobotan eksponensial untuk data time
+            series
+          </p>
+
+          <div class="calculation-card">
+            <strong>Rumus Exponential Smoothing:</strong>
+            <div class="formula">
+              F<sub>t</sub> = α × A<sub>t-1</sub> + (1-α) × F<sub>t-1</sub>
+            </div>
+            <small class="text-muted"
+              >Dimana: F<sub>t</sub> = Forecast periode t, A<sub>t-1</sub> =
+              Actual periode t-1, α = Alpha (konstanta smoothing)</small
+            >
+          </div>
+
+          <div class="calculation-card">
+            <strong>Rumus Forecast Tahun Berikutnya:</strong>
+            <div class="formula">
+              F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub>
+            </div>
+            <small class="text-muted"
+              >Forecast untuk tahun berikutnya menggunakan data aktual terakhir
+              dan forecast terakhir</small
+            >
+          </div>
+
+          <div class="calculation-card">
+            <strong>Rumus MAPE (Mean Absolute Percentage Error):</strong>
+            <div class="formula">
+              MAPE = (1/n) × Σ |(A<sub>t</sub> - F<sub>t</sub>) / A<sub>t</sub>|
+              × 100%
+            </div>
+            <small class="text-muted"
+              >Digunakan untuk mengukur akurasi forecasting dengan membandingkan
+              error relatif</small
+            >
+          </div>
+        </div>
+      </div>
+
       <div class="card p-4 mb-5">
         <h4 class="text-secondary mb-4 text-center">
           <i class="bi bi-table header-icon"></i>Tabel Hasil Peramalan
@@ -312,13 +401,14 @@
             <thead>
               <tr>
                 <th>Ukuran</th>
-                <th>Alpha Terbaik</th>
+                <th>Alpha (α)</th>
                 <th>MAPE (%)</th>
                 <th>Tahun Terakhir</th>
-                <th>Nilai Aktual Tahun Terakhir</th>
-                <th>Forecast Tahun Terakhir</th>
-                <th>Tahun Prediksi Berikutnya</th>
-                <th>Forecast Berikutnya</th>
+                <th>Nilai Aktual (A<sub>t</sub>)</th>
+                <th>Forecast (F<sub>t</sub>)</th>
+                <th>Tahun Berikutnya</th>
+                <th>Forecast (F<sub>t+1</sub>)</th>
+                <th>Detail Perhitungan</th>
               </tr>
             </thead>
             <tbody>
@@ -335,7 +425,17 @@
                 <td>{{ r.actual_last }}</td>
                 <td>{{ r.forecast_last }}</td>
                 <td>{{ r.tahun_next }}</td>
-                <td><strong>{{ r.forecast_next }}</strong></td>
+                <td class="bg-warning bg-opacity-25">
+                  <strong>{{ r.forecast_next }}</strong>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-info"
+                    onclick="showCalculation('{{ r.ukuran }}', {{ r.alpha }}, {{ r.actual_last }}, {{ r.forecast_last }}, {{ r.forecast_next }})"
+                  >
+                    <i class="bi bi-eye me-1"></i>Lihat
+                  </button>
+                </td>
               </tr>
               {% endfor %}
             </tbody>
@@ -366,6 +466,27 @@
       </div>
 
       {% endif %}
+
+      <!-- Modal untuk Detail Perhitungan -->
+      <div class="modal fade" id="calculationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content bg-card">
+            <div class="modal-header">
+              <h5 class="modal-title text-primary">
+                Detail Perhitungan Forecasting
+              </h5>
+              <button
+                type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+            <div class="modal-body" id="calculationDetails">
+              <!-- Detail perhitungan akan dimuat di sini -->
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="footer">
         <p>
@@ -573,6 +694,49 @@
           themeIcon.classList.add('bi-sun-fill');
         }
       });
+
+      // Fungsi untuk menampilkan detail perhitungan
+      function showCalculation(ukuran, alpha, actualLast, forecastLast, forecastNext) {
+        const part1 = (alpha * actualLast).toFixed(2);
+        const part2 = ((1 - alpha) * forecastLast).toFixed(2);
+
+        const calculation = `
+          <div class="calculation-card">
+            <h6 class="text-primary">Perhitungan Forecast untuk Ukuran <strong>${ukuran}</strong>:</h6>
+          </div>
+
+          <div class="calculation-card">
+            <strong>Rumus yang digunakan:</strong>
+            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
+          </div>
+
+          <div class="calculation-card">
+            <strong>Nilai Variabel:</strong>
+            <div class="calculation-step">
+              - Alpha (α) = <strong>${alpha}</strong><br>
+              - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
+              - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+            </div>
+          </div>
+
+          <div class="calculation-card">
+            <strong>Langkah Perhitungan:</strong>
+            <div class="calculation-step">
+              1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
+              2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
+              3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+            </div>
+          </div>
+
+          <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+          </div>
+        `;
+
+        document.getElementById('calculationDetails').innerHTML = calculation;
+        new bootstrap.Modal(document.getElementById('calculationModal')).show();
+      }
     </script>
 
     <!-- Bootstrap JS -->

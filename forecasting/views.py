@@ -28,9 +28,6 @@ def api_forecast(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Gunakan metode POST.'}, status=405)
 
-    import pandas as pd
-    from io import TextIOWrapper, BytesIO
-
     df = None
 
     # 1. Input via file
