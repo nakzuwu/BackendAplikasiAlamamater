@@ -1,413 +1,420 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hasil Peramalan Jas Almamater</title>
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Hasil Peramalan Jas Almamater</title>
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <!-- Bootstrap 5 -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
 
-    <style>
-        :root {
-            --bg-primary: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-card: #21262d;
-            --text-primary: #f0f6fc;
-            --text-secondary: #8b949e;
-            --accent-primary: #58a6ff;
-            --accent-secondary: #1f6feb;
-            --border-color: #30363d;
-            --success: #3fb950;
-            --warning: #d29922;
-            --danger: #f85149;
-        }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin-top: 40px;
-            margin-bottom: 60px;
-        }
-
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-        }
-
-        .table {
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-
-        .table th {
-            background-color: var(--accent-secondary);
-            color: white;
-            text-align: center;
-            vertical-align: middle;
-            font-weight: 600;
-            border: none;
-            padding: 12px 8px;
-        }
-
-        .table td {
-            text-align: center;
-            vertical-align: middle;
-            padding: 12px 8px;
-            border-color: var(--border-color);
-        }
-
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(255, 255, 255, 0.03);
-        }
-
-        .table-striped tbody tr:nth-of-type(even) {
-            background-color: rgba(255, 255, 255, 0.06);
-        }
-
-        .table-striped tbody tr:hover {
-            background-color: rgba(88, 166, 255, 0.1);
-        }
-
-        .btn-primary {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-            font-weight: 500;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--accent-secondary);
-            border-color: var(--accent-secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
-        }
-
-        .btn-secondary {
-            background-color: var(--bg-secondary);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--border-color);
-            border-color: var(--text-secondary);
-            transform: translateY(-2px);
-        }
-
-        .alert-danger {
-            background-color: rgba(248, 81, 73, 0.15);
-            border-color: var(--danger);
-            color: var(--danger);
-            border-radius: 8px;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .text-primary {
-            color: var(--accent-primary) !important;
-        }
-
-        .text-secondary {
-            color: var(--text-secondary) !important;
-        }
-
-        .text-muted {
-            color: var(--text-secondary) !important;
-        }
-
-        #multiChart, #yearlyChart {
-            width: 100% !important;
-            min-height: 350px;
-            max-height: 500px;
-        }
-
-        .header-icon {
-            font-size: 1.8rem;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
-
-        .metric-highlight {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
-        .metric-container {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .metric-card {
-            flex: 1;
-            min-width: 200px;
-            background-color: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            border-left: 4px solid var(--accent-primary);
-        }
-
-        .metric-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 10px 0;
-            color: var(--accent-primary);
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .footer {
-            margin-top: 40px;
-            padding: 20px 0;
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .theme-toggle:hover {
-            transform: rotate(15deg);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .calculation-card {
-            background: var(--bg-secondary);
-            border-left: 4px solid var(--accent-primary);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-        }
-
-        .formula {
-            font-family: "Courier New", monospace;
-            background: var(--bg-primary);
-            padding: 12px;
-            border-radius: 6px;
-            margin: 8px 0;
-            border: 1px solid var(--border-color);
-            color: var(--accent-primary);
-            font-weight: 500;
-        }
-
-        .calculation-step {
-            background: var(--bg-secondary);
-            padding: 10px;
-            border-radius: 6px;
-            margin: 5px 0;
-            border-left: 3px solid var(--success);
-        }
-
-        .btn-info {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background-color: #138496;
-            border-color: #117a8b;
-        }
-
-        .method-badge {
-            font-size: 0.8rem;
-            padding: 4px 8px;
-        }
-
-        .best-metric {
-            background: linear-gradient(135deg, var(--success), #2ea043);
-            color: white;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin-top: 70px;
+        <style>
+            :root {
+                --bg-primary: #0d1117;
+                --bg-secondary: #161b22;
+                --bg-card: #21262d;
+                --text-primary: #f0f6fc;
+                --text-secondary: #8b949e;
+                --accent-primary: #58a6ff;
+                --accent-secondary: #1f6feb;
+                --border-color: #30363d;
+                --success: #3fb950;
+                --warning: #d29922;
+                --danger: #f85149;
             }
 
-            .table-responsive {
-                font-size: 0.85rem;
+            body {
+                background-color: var(--bg-primary);
+                color: var(--text-primary);
+                min-height: 100vh;
+                font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+                transition: all 0.3s ease;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin-top: 40px;
+                margin-bottom: 60px;
+            }
+
+            .card {
+                background-color: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+            }
+
+            .table {
+                color: var(--text-primary);
+                border-color: var(--border-color);
+            }
+
+            .table th {
+                background-color: var(--accent-secondary);
+                color: white;
+                text-align: center;
+                vertical-align: middle;
+                font-weight: 600;
+                border: none;
+                padding: 12px 8px;
+            }
+
+            .table td {
+                text-align: center;
+                vertical-align: middle;
+                padding: 12px 8px;
+                border-color: var(--border-color);
+            }
+
+            .table-striped tbody tr:nth-of-type(odd) {
+                background-color: rgba(255, 255, 255, 0.03);
+            }
+
+            .table-striped tbody tr:nth-of-type(even) {
+                background-color: rgba(255, 255, 255, 0.06);
+            }
+
+            .table-striped tbody tr:hover {
+                background-color: rgba(88, 166, 255, 0.1);
+            }
+
+            .btn-primary {
+                background-color: var(--accent-primary);
+                border-color: var(--accent-primary);
+                color: white;
+                font-weight: 500;
+                padding: 10px 20px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }
+
+            .btn-primary:hover {
+                background-color: var(--accent-secondary);
+                border-color: var(--accent-secondary);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(31, 111, 235, 0.3);
+            }
+
+            .btn-secondary {
+                background-color: var(--bg-secondary);
+                border-color: var(--border-color);
+                color: var(--text-primary);
+                padding: 10px 20px;
+                border-radius: 8px;
+                transition: all 0.3s ease;
+            }
+
+            .btn-secondary:hover {
+                background-color: var(--border-color);
+                border-color: var(--text-secondary);
+                transform: translateY(-2px);
+            }
+
+            .alert-danger {
+                background-color: rgba(248, 81, 73, 0.15);
+                border-color: var(--danger);
+                color: var(--danger);
+                border-radius: 8px;
+            }
+
+            h1, h2, h3, h4, h5, h6 {
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+
+            .text-primary {
+                color: var(--accent-primary) !important;
+            }
+
+            .text-secondary {
+                color: var(--text-secondary) !important;
+            }
+
+            .text-muted {
+                color: var(--text-secondary) !important;
+            }
+
+            #multiChart, #yearlyChart {
+                width: 100% !important;
+                min-height: 350px;
+                max-height: 500px;
+            }
+
+            .header-icon {
+                font-size: 1.8rem;
+                margin-right: 10px;
+                vertical-align: middle;
+            }
+
+            .metric-highlight {
+                background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+                color: white;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-weight: 600;
+            }
+
+            .metric-container {
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 15px;
+                margin-bottom: 25px;
             }
 
             .metric-card {
-                min-width: 100%;
+                flex: 1;
+                min-width: 200px;
+                background-color: var(--bg-secondary);
+                border-radius: 10px;
+                padding: 15px;
+                text-align: center;
+                border-left: 4px solid var(--accent-primary);
             }
-        }
-    </style>
-</head>
 
-<body>
-    <div class="container">
-        {% if error %}
-        <div class="alert alert-danger text-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
-        </div>
-        <div class="text-center">
-            <a href="/" class="btn btn-secondary mt-3">
-                <i class="bi bi-arrow-left me-2"></i>Kembali
-            </a>
-        </div>
-        {% else %}
+            .metric-value {
+                font-size: 1.8rem;
+                font-weight: 700;
+                margin: 10px 0;
+                color: var(--accent-primary);
+            }
 
-        <div class="text-center mb-5">
-            <h1 class="fw-bold text-primary mb-3">
-                <i class="bi bi-graph-up header-icon"></i>Hasil Peramalan Jas Almamater
-            </h1>
-            <p class="text-muted fs-5">
-                Analisis Prediksi Berdasarkan Multiple Metode Evaluasi
-            </p>
-        </div>
+            .metric-label {
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+            }
 
-        <!-- Metrics Summary -->
-        <div class="metric-container">
-            <div class="metric-card">
-                <div class="metric-label">Total Ukuran</div>
-                <div class="metric-value">{{ results|length }}</div>
+            .footer {
+                margin-top: 40px;
+                padding: 20px 0;
+                text-align: center;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .theme-toggle {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 1000;
+                transition: all 0.3s ease;
+            }
+
+            .theme-toggle:hover {
+                transform: rotate(15deg);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+
+            .calculation-card {
+                background: var(--bg-secondary);
+                border-left: 4px solid var(--accent-primary);
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 8px;
+            }
+
+            .formula {
+                font-family: "Courier New", monospace;
+                background: var(--bg-primary);
+                padding: 12px;
+                border-radius: 6px;
+                margin: 8px 0;
+                border: 1px solid var(--border-color);
+                color: var(--accent-primary);
+                font-weight: 500;
+            }
+
+            .calculation-step {
+                background: var(--bg-secondary);
+                padding: 10px;
+                border-radius: 6px;
+                margin: 5px 0;
+                border-left: 3px solid var(--success);
+            }
+
+            .btn-info {
+                background-color: #17a2b8;
+                border-color: #17a2b8;
+                color: white;
+            }
+
+            .btn-info:hover {
+                background-color: #138496;
+                border-color: #117a8b;
+            }
+
+            .method-badge {
+                font-size: 0.8rem;
+                padding: 4px 8px;
+            }
+
+            .best-metric {
+                background: linear-gradient(135deg, var(--success), #2ea043);
+                color: white;
+                font-weight: bold;
+                padding: 2px 8px;
+                border-radius: 4px;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    margin-top: 70px;
+                }
+
+                .table-responsive {
+                    font-size: 0.85rem;
+                }
+
+                .metric-card {
+                    min-width: 100%;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            {% if error %}
+            <div class="alert alert-danger text-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
             </div>
-            <div class="metric-card">
-                <div class="metric-label">MAPE Terbaik</div>
-                <div class="metric-value">{{ best_mape }}%</div>
+            <div class="text-center">
+                <a href="/" class="btn btn-secondary mt-3">
+                    <i class="bi bi-arrow-left me-2"></i>Kembali
+                </a>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">MAE Terbaik</div>
-                <div class="metric-value">
-                    {% with best_mae=results|dictsort:"mae"|first %}
-                        {{ best_mae.mae }}
-                    {% endwith %}
+            {% else %}
+
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-primary mb-3">
+                    <i class="bi bi-graph-up header-icon"></i>Hasil Peramalan Jas Almamater
+                </h1>
+                <p class="text-muted fs-5">
+                    Analisis Prediksi Berdasarkan Multiple Metode Evaluasi
+                </p>
+            </div>
+
+            <!-- Metrics Summary -->
+            <div class="metric-container">
+                <div class="metric-card">
+                    <div class="metric-label">Total Ukuran</div>
+                    <div class="metric-value">{{ results|length }}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">MAPE Terbaik</div>
+                    <div class="metric-value">{{ best_mape }}%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">MAE Terbaik</div>
+                    <div class="metric-value">
+                        {% with best_mae=results|dictsort:"mae"|first %}
+                            {{ best_mae.mae }}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">MSE Terbaik</div>
+                    <div class="metric-value">
+                        {% with best_mse=results|dictsort:"mse"|first %}
+                            {{ best_mse.mse }}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Tahun Prediksi</div>
+                    <div class="metric-value">{{ results.0.tahun_next }}</div>
                 </div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">MSE Terbaik</div>
-                <div class="metric-value">
-                    {% with best_mse=results|dictsort:"mse"|first %}
-                        {{ best_mse.mse }}
-                    {% endwith %}
-                </div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Tahun Prediksi</div>
-                <div class="metric-value">{{ results.0.tahun_next }}</div>
-            </div>
-        </div>
 
-        <!-- 1. Table Hasil Prediksi menggunakan MAPE Terbaik -->
-        <div class="card p-4 mb-5">
-            <h4 class="text-secondary mb-4 text-center">
-                <i class="bi bi-table header-icon"></i>Hasil Prediksi Berdasarkan MAPE Terbaik
-            </h4>
-            <div class="alert alert-success mb-3">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>MAPE (Mean Absolute Percentage Error):</strong> Metode terbaik berdasarkan error persentase terkecil. 
-                MAPE < 10% = Akurasi Tinggi, 10-20% = Baik, >20% = Perlu Perbaikan
-            </div>
+            <!-- 1. Table Hasil Prediksi menggunakan MAPE Terbaik -->
+<div class="card p-4 mb-5">
+    <h4 class="text-secondary mb-4 text-center">
+        <i class="bi bi-table header-icon"></i>Hasil Prediksi Berdasarkan MAPE Terbaik
+    </h4>
+    <div class="alert alert-success mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>MAPE (Mean Absolute Percentage Error):</strong> Metode terbaik berdasarkan error persentase terkecil. 
+        MAPE < 10% = Akurasi Tinggi, 10-20% = Baik, >20% = Perlu Perbaikan
+    </div>
 
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Ukuran</th>
-                            <th>Alpha (α)</th>
-                            <th>MAPE (%)</th>
-                            <th>MAE</th>
-                            <th>MSE</th>
-                            <th>Tahun Terakhir</th>
-                            <th>Aktual (A<sub>t</sub>)</th>
-                            <th>Tahun Berikutnya</th>
-                            <th>Forecast (F<sub>t+1</sub>)</th>
-                            <th>Trend</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for r in results %}
-                        <tr>
-                            <td><strong>{{ r.ukuran }}</strong></td>
-                            <td><span class="badge bg-primary method-badge">{{ r.alpha_mape }}</span></td>
-                            <td>
-                                <span class="best-metric">{{ r.mape }}%</span>
-                            </td>
-                            <td>{{ r.mae }}</td>
-                            <td>{{ r.mse }}</td>
-                            <td>{{ r.tahun_last }}</td>
-                            <td>{{ r.actual_last }}</td>
-                            <td>{{ r.tahun_next }}</td>
-                            <td class="bg-warning bg-opacity-25 fw-bold">
-                                {{ r.forecast_next }}
-                            </td>
-                            <td>
-                                {% if r.forecast_trend == 'Naik' %}
-                                    <span class="badge bg-success"><i class="bi bi-arrow-up"></i></span>
-                                {% elif r.forecast_trend == 'Turun' %}
-                                    <span class="badge bg-danger"><i class="bi bi-arrow-down"></i></span>
-                                {% else %}
-                                    <span class="badge bg-secondary"><i class="bi bi-dash"></i></span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Ukuran</th>
+                    <th>Alpha (α)</th>
+                    <th>MAPE (%)</th>
+                    <th>MAE</th>
+                    <th>MSE</th>
+                    <th>Tahun Terakhir</th>
+                    <th>Aktual (A<sub>t</sub>)</th>
+                    <th>Tahun Berikutnya</th>
+                    <th>Forecast (F<sub>t+1</sub>)</th>
+                    <th>Trend</th>
+                    <th>Detail Perhitungan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td><strong>{{ r.ukuran }}</strong></td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha_mape }}</span></td>
+                    <td>
+                        <span class="best-metric">{{ r.mape }}%</span>
+                    </td>
+                    <td>{{ r.mae }}</td>
+                    <td>{{ r.mse }}</td>
+                    <td>{{ r.tahun_last }}</td>
+                    <td>{{ r.actual_last }}</td>
+                    <td>{{ r.tahun_next }}</td>
+                    <td class="bg-warning bg-opacity-25 fw-bold">
+                        {{ r.forecast_next }}
+                    </td>
+                    <td>
+                        {% if r.forecast_trend == 'Naik' %}
+                            <span class="badge bg-success"><i class="bi bi-arrow-up"></i></span>
+                        {% elif r.forecast_trend == 'Turun' %}
+                            <span class="badge bg-danger"><i class="bi bi-arrow-down"></i></span>
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-dash"></i></span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="showMAPECalculation('{{ r.ukuran }}', {{ r.alpha_mape }}, {{ r.actual_last }}, {{ r.forecast_last }}, {{ r.forecast_next }}, {{ r.mape }}, {{ r.mae }}, {{ r.mse }})">
+                            <i class="bi bi-calculator me-1"></i>Lihat
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        <!-- 2. Table Hasil Prediksi menggunakan MAE Terbaik -->
+<!-- 2. Table Hasil Prediksi menggunakan MAE Terbaik -->
 <div class="card p-4 mb-5">
     <h4 class="text-secondary mb-4 text-center">
         <i class="bi bi-table header-icon"></i>Hasil Prediksi Berdasarkan MAE Terbaik
@@ -432,6 +439,7 @@
                     <th>Tahun Berikutnya</th>
                     <th>Forecast (F<sub>t+1</sub>)</th>
                     <th>Trend</th>
+                    <th>Detail Perhitungan</th>
                 </tr>
             </thead>
             <tbody>
@@ -458,6 +466,21 @@
                         {% else %}
                             <span class="badge bg-secondary"><i class="bi bi-dash"></i></span>
                         {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="showMAECalculation(
+                                    '{{ r.ukuran }}', 
+                                    {{ r.alpha }}, 
+                                    {{ r.actual_last }}, 
+                                    {{ r.forecast_last|default:r.actual_last }}, 
+                                    {{ r.forecast_next }}, 
+                                    {{ r.mape }},
+                                    {{ r.mae }},
+                                    {{ r.mse }}  <!-- Pastikan ini parameter ke-8 -->
+                                )">
+                            <i class="bi bi-calculator me-1"></i>Lihat
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -491,6 +514,7 @@
                     <th>Tahun Berikutnya</th>
                     <th>Forecast (F<sub>t+1</sub>)</th>
                     <th>Trend</th>
+                    <th>Detail Perhitungan</th>
                 </tr>
             </thead>
             <tbody>
@@ -518,435 +542,686 @@
                             <span class="badge bg-secondary"><i class="bi bi-dash"></i></span>
                         {% endif %}
                     </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="showMSECalculation(
+                                    '{{ r.ukuran }}', 
+                                    {{ r.alpha }}, 
+                                    {{ r.actual_last }}, 
+                                    {{ r.forecast_last|default:r.actual_last }}, 
+                                    {{ r.forecast_next }}, 
+                                    {{ r.mape }},
+                                    {{ r.mae }},
+                                    {{ r.mse }}  <!-- Pastikan ini parameter ke-8 -->
+                                )">
+                            <i class="bi bi-calculator me-1"></i>Lihat
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-        <!-- 4. Perbandingan Semua Alpha -->
-        <div class="card p-4 mb-5">
-            <h4 class="text-secondary mb-4 text-center">
-                <i class="bi bi-bar-chart header-icon"></i>Perbandingan Semua Alpha (9 Kombinasi per Ukuran)
-            </h4>
+            <!-- 4. Perbandingan Semua Alpha -->
+            <div class="card p-4 mb-5">
+                <h4 class="text-secondary mb-4 text-center">
+                    <i class="bi bi-bar-chart header-icon"></i>Perbandingan Semua Alpha (9 Kombinasi per Ukuran)
+                </h4>
 
-            <div class="alert alert-info mb-4">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi (9 alpha × {{ results|length }} ukuran)
-            </div>
-
-            {% for ukuran, calculations in all_calculations.items %}
-            <div class="mb-4">
-                <h5 class="text-primary mb-3">
-                    <i class="bi bi-graph-up"></i> Ukuran: {{ ukuran }}
-                    <span class="badge bg-secondary">9 Kombinasi Alpha</span>
-                </h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered">
-                        <thead>
-                            <tr class="table-dark">
-                                <th>Alpha (α)</th>
-                                <th>MAPE (%)</th>
-                                <th>MAE</th>
-                                <th>MSE</th>
-                                <th>Keterangan</th>
-                                <th>Forecast (F<sub>t+1</sub>)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for calc in calculations %}
-                            <tr>
-                                <td><strong>{{ calc.alpha }}</strong></td>
-                                <td>
-                                    {{ calc.mape }}%
-                                    {% with best_mape=calculations|dictsort:"mape"|first %}
-                                        {% if calc.mape == best_mape.mape %}
-                                            <span class="badge bg-success">Terbaik</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td>
-                                    {{ calc.mae }}
-                                    {% with best_mae=calculations|dictsort:"mae"|first %}
-                                        {% if calc.mae == best_mae.mae %}
-                                            <span class="badge bg-info">Terbaik</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td>
-                                    {{ calc.mse }}
-                                    {% with best_mse=calculations|dictsort:"mse"|first %}
-                                        {% if calc.mse == best_mse.mse %}
-                                            <span class="badge bg-warning">Terbaik</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td>
-                                    {% with best_mape=calculations|dictsort:"mape"|first %}
-                                        {% if calc.mape == best_mape.mape %}
-                                            <span class="badge bg-success">MAPE Terbaik</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                    {% with best_mae=calculations|dictsort:"mae"|first %}
-                                        {% if calc.mae == best_mae.mae %}
-                                            <span class="badge bg-info">MAE Terbaik</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                    {% with best_mse=calculations|dictsort:"mse"|first %}
-                                        {% if calc.mse == best_mse.mse %}
-                                            <span class="badge bg-warning">MSE Terbaik</span>
-                                        {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td class="fw-bold">
-                                    {{ calc.forecast_next }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi (9 alpha × {{ results|length }} ukuran)
                 </div>
+
+                {% for ukuran, calculations in all_calculations.items %}
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="bi bi-graph-up"></i> Ukuran: {{ ukuran }}
+                        <span class="badge bg-secondary">9 Kombinasi Alpha</span>
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr class="table-dark">
+                                    <th>Alpha (α)</th>
+                                    <th>MAPE (%)</th>
+                                    <th>MAE</th>
+                                    <th>MSE</th>
+                                    <th>Keterangan</th>
+                                    <th>Forecast (F<sub>t+1</sub>)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for calc in calculations %}
+                                <tr>
+                                    <td><strong>{{ calc.alpha }}</strong></td>
+                                    <td>
+                                        {{ calc.mape }}%
+                                        {% with best_mape=calculations|dictsort:"mape"|first %}
+                                            {% if calc.mape == best_mape.mape %}
+                                                <span class="badge bg-success">Terbaik</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {{ calc.mae }}
+                                        {% with best_mae=calculations|dictsort:"mae"|first %}
+                                            {% if calc.mae == best_mae.mae %}
+                                                <span class="badge bg-info">Terbaik</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {{ calc.mse }}
+                                        {% with best_mse=calculations|dictsort:"mse"|first %}
+                                            {% if calc.mse == best_mse.mse %}
+                                                <span class="badge bg-warning">Terbaik</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% with best_mape=calculations|dictsort:"mape"|first %}
+                                            {% if calc.mape == best_mape.mape %}
+                                                <span class="badge bg-success">MAPE Terbaik</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                        {% with best_mae=calculations|dictsort:"mae"|first %}
+                                            {% if calc.mae == best_mae.mae %}
+                                                <span class="badge bg-info">MAE Terbaik</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                        {% with best_mse=calculations|dictsort:"mse"|first %}
+                                            {% if calc.mse == best_mse.mse %}
+                                                <span class="badge bg-warning">MSE Terbaik</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td class="fw-bold">
+                                        {{ calc.forecast_next }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
 
-        <!-- 5. Semua Rumus Perhitungan -->
-        <div class="card p-4 mb-5">
-            <h4 class="text-secondary mb-4 text-center">
-                <i class="bi bi-calculator header-icon"></i>Rumus Perhitungan Lengkap
-            </h4>
+            <!-- 5. Semua Rumus Perhitungan -->
+            <div class="card p-4 mb-5">
+                <h4 class="text-secondary mb-4 text-center">
+                    <i class="bi bi-calculator header-icon"></i>Rumus Perhitungan Lengkap
+                </h4>
 
-            <div class="row">
-                <!-- Metode Exponential Smoothing -->
-                <div class="col-md-6 mb-4">
-                    <div class="calculation-card">
-                        <h5 class="text-primary">Metode: Single Exponential Smoothing</h5>
-                        <p class="text-muted">
-                            Metode pembobotan eksponensial untuk data time series
-                        </p>
-
+                <div class="row">
+                    <!-- Metode Exponential Smoothing -->
+                    <div class="col-md-6 mb-4">
                         <div class="calculation-card">
-                            <strong>Rumus Exponential Smoothing:</strong>
-                            <div class="formula">
-                                F<sub>t</sub> = α × A<sub>t-1</sub> + (1-α) × F<sub>t-1</sub>
+                            <h5 class="text-primary">Metode: Single Exponential Smoothing</h5>
+                            <p class="text-muted">
+                                Metode pembobotan eksponensial untuk data time series
+                            </p>
+
+                            <div class="calculation-card">
+                                <strong>Rumus Exponential Smoothing:</strong>
+                                <div class="formula">
+                                    F<sub>t</sub> = α × A<sub>t-1</sub> + (1-α) × F<sub>t-1</sub>
+                                </div>
+                                <small class="text-muted">Dimana: F<sub>t</sub> = Forecast periode t, A<sub>t-1</sub> = Actual periode t-1, α = Alpha (konstanta smoothing 0.1-0.9)</small>
                             </div>
-                            <small class="text-muted">Dimana: F<sub>t</sub> = Forecast periode t, A<sub>t-1</sub> = Actual periode t-1, α = Alpha (konstanta smoothing 0.1-0.9)</small>
+
+                            <div class="calculation-card">
+                                <strong>Rumus Forecast Tahun Berikutnya:</strong>
+                                <div class="formula">
+                                    F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub>
+                                </div>
+                                <small class="text-muted">Forecast untuk tahun berikutnya menggunakan data aktual terakhir dan forecast terakhir</small>
+                            </div>
                         </div>
+                    </div>
 
+                    <!-- Metode Evaluasi -->
+                    <div class="col-md-6 mb-4">
                         <div class="calculation-card">
-                            <strong>Rumus Forecast Tahun Berikutnya:</strong>
-                            <div class="formula">
-                                F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub>
+                            <h5 class="text-primary">Metode Evaluasi Akurasi</h5>
+                            
+                            <div class="calculation-card">
+                                <strong>MAPE (Mean Absolute Percentage Error):</strong>
+                                <div class="formula">
+                                    MAPE = (1/n) × Σ |(A<sub>t</sub> - F<sub>t</sub>) / A<sub>t</sub>| × 100%
+                                </div>
+                                <small class="text-muted">Mengukur error dalam persentase relatif. < 10% = Excellent</small>
                             </div>
-                            <small class="text-muted">Forecast untuk tahun berikutnya menggunakan data aktual terakhir dan forecast terakhir</small>
+
+                            <div class="calculation-card">
+                                <strong>MAE (Mean Absolute Error):</strong>
+                                <div class="formula">
+                                    MAE = (1/n) × Σ |A<sub>t</sub> - F<sub>t</sub>|
+                                </div>
+                                <small class="text-muted">Mengukur error absolut dalam satuan data asli</small>
+                            </div>
+
+                            <div class="calculation-card">
+                                <strong>MSE (Mean Squared Error):</strong>
+                                <div class="formula">
+                                    MSE = (1/n) × Σ (A<sub>t</sub> - F<sub>t</sub>)²
+                                </div>
+                                <small class="text-muted">Mengukur error kuadrat, sensitif terhadap outlier</small>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Metode Evaluasi -->
-                <div class="col-md-6 mb-4">
-                    <div class="calculation-card">
-                        <h5 class="text-primary">Metode Evaluasi Akurasi</h5>
-                        
-                        <div class="calculation-card">
-                            <strong>MAPE (Mean Absolute Percentage Error):</strong>
-                            <div class="formula">
-                                MAPE = (1/n) × Σ |(A<sub>t</sub> - F<sub>t</sub>) / A<sub>t</sub>| × 100%
-                            </div>
-                            <small class="text-muted">Mengukur error dalam persentase relatif. < 10% = Excellent</small>
+            <!-- 6. Grafik -->
+            <div class="card p-4 mb-5">
+                <h4 class="text-secondary text-center mb-4">
+                    <i class="bi bi-graph-up-arrow header-icon"></i>Grafik Perbandingan Hasil Forecasting
+                </h4>
+                <canvas id="multiChart"></canvas>
+            </div>
+
+            <div class="card p-4 mb-5">
+                <h4 class="text-secondary text-center mb-4">
+                    <i class="bi bi-bar-chart-fill header-icon"></i>Grafik Perbandingan per Tahun
+                </h4>
+                <canvas id="yearlyChart"></canvas>
+            </div>
+
+            <div class="text-center">
+                <a href="/" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Kembali ke Halaman Awal
+                </a>
+            </div>
+
+            {% endif %}
+
+            <!-- Modal untuk Detail Perhitungan -->
+            <div class="modal fade" id="calculationModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content bg-card">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-primary">Detail Perhitungan Forecasting</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
-
-                        <div class="calculation-card">
-                            <strong>MAE (Mean Absolute Error):</strong>
-                            <div class="formula">
-                                MAE = (1/n) × Σ |A<sub>t</sub> - F<sub>t</sub>|
-                            </div>
-                            <small class="text-muted">Mengukur error absolut dalam satuan data asli</small>
-                        </div>
-
-                        <div class="calculation-card">
-                            <strong>MSE (Mean Squared Error):</strong>
-                            <div class="formula">
-                                MSE = (1/n) × Σ (A<sub>t</sub> - F<sub>t</sub>)²
-                            </div>
-                            <small class="text-muted">Mengukur error kuadrat, sensitif terhadap outlier</small>
+                        <div class="modal-body" id="calculationDetails">
+                            <!-- Detail perhitungan akan dimuat di sini -->
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 6. Grafik -->
-        <div class="card p-4 mb-5">
-            <h4 class="text-secondary text-center mb-4">
-                <i class="bi bi-graph-up-arrow header-icon"></i>Grafik Perbandingan Hasil Forecasting
-            </h4>
-            <canvas id="multiChart"></canvas>
-        </div>
-
-        <div class="card p-4 mb-5">
-            <h4 class="text-secondary text-center mb-4">
-                <i class="bi bi-bar-chart-fill header-icon"></i>Grafik Perbandingan per Tahun
-            </h4>
-            <canvas id="yearlyChart"></canvas>
-        </div>
-
-        <div class="text-center">
-            <a href="/" class="btn btn-primary">
-                <i class="bi bi-arrow-left me-2"></i>Kembali ke Halaman Awal
-            </a>
-        </div>
-
-        {% endif %}
-
-        <!-- Modal untuk Detail Perhitungan -->
-        <div class="modal fade" id="calculationModal" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content bg-card">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-primary">Detail Perhitungan Forecasting</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body" id="calculationDetails">
-                        <!-- Detail perhitungan akan dimuat di sini -->
-                    </div>
-                </div>
+            <div class="footer">
+                <p>
+                    &copy; 2023 Sistem Peramalan Jas Almamater | Analisis Multiple Metode
+                </p>
             </div>
         </div>
 
-        <div class="footer">
-            <p>
-                &copy; 2023 Sistem Peramalan Jas Almamater | Analisis Multiple Metode
-            </p>
-        </div>
-    </div>
+        <!-- Chart.js script -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                try {
+                    const chartData = {{ chart_data|safe }};
+                    const labels = {{ years|safe }};
+                    const colors = [
+                        '#58a6ff', '#3fb950', '#f85149', '#d29922', '#db61a2', '#8b949e'
+                    ];
 
-    <!-- Chart.js script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                const chartData = {{ chart_data|safe }};
-                const labels = {{ years|safe }};
-                const colors = [
-                    '#58a6ff', '#3fb950', '#f85149', '#d29922', '#db61a2', '#8b949e'
-                ];
+                    // === Grafik 1: Tren per ukuran (Line Chart)
+                    const ctxLine = document.getElementById('multiChart').getContext('2d');
+                    const datasets = [];
 
-                // === Grafik 1: Tren per ukuran (Line Chart)
-                const ctxLine = document.getElementById('multiChart').getContext('2d');
-                const datasets = [];
-
-                let i = 0;
-                for (const [key, values] of Object.entries(chartData)) {
-                    if (Array.isArray(values) && values.length > 0) {
-                        datasets.push({
-                            label: key,
-                            data: values,
-                            borderColor: colors[i % colors.length],
-                            backgroundColor: colors[i % colors.length] + '20',
-                            borderWidth: 3,
-                            tension: 0.3,
-                            fill: false,
-                            pointRadius: 4,
-                            pointHoverRadius: 8,
-                            pointBackgroundColor: colors[i % colors.length],
-                        });
+                    let i = 0;
+                    for (const [key, values] of Object.entries(chartData)) {
+                        if (Array.isArray(values) && values.length > 0) {
+                            datasets.push({
+                                label: key,
+                                data: values,
+                                borderColor: colors[i % colors.length],
+                                backgroundColor: colors[i % colors.length] + '20',
+                                borderWidth: 3,
+                                tension: 0.3,
+                                fill: false,
+                                pointRadius: 4,
+                                pointHoverRadius: 8,
+                                pointBackgroundColor: colors[i % colors.length],
+                            });
+                        }
+                        i++;
                     }
-                    i++;
+
+                    new Chart(ctxLine, {
+                        type: 'line',
+                        data: { labels: labels, datasets: datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Trend Forecasting Semua Ukuran',
+                                    color: '#f0f6fc',
+                                    font: { size: 16 }
+                                },
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: '#8b949e',
+                                        font: { size: 12 }
+                                    }
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: '#21262d',
+                                    titleColor: '#f0f6fc',
+                                    bodyColor: '#f0f6fc',
+                                    borderColor: '#30363d',
+                                    borderWidth: 1
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Tahun',
+                                        color: '#8b949e'
+                                    },
+                                    grid: { color: '#30363d' },
+                                    ticks: { color: '#8b949e' }
+                                },
+                                y: {
+                                    beginAtZero: false,
+                                    title: {
+                                        display: true,
+                                        text: 'Jumlah Permintaan',
+                                        color: '#8b949e'
+                                    },
+                                    grid: { color: '#30363d' },
+                                    ticks: { color: '#8b949e' }
+                                }
+                            }
+                        }
+                    });
+
+                    // === Grafik 2: Perbandingan per tahun (Bar Chart)
+                    const ctxBar = document.getElementById('yearlyChart').getContext('2d');
+
+                    // Dataset untuk setiap ukuran (stacked)
+                    const barDatasets = Object.keys(chartData).map((key, idx) => ({
+                        label: key,
+                        data: chartData[key],
+                        backgroundColor: colors[idx % colors.length] + 'CC',
+                        borderColor: colors[idx % colors.length],
+                        borderWidth: 1
+                    }));
+
+                    new Chart(ctxBar, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: barDatasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Distribusi Permintaan per Tahun',
+                                    color: '#f0f6fc',
+                                    font: { size: 16 }
+                                },
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: '#8b949e',
+                                        font: { size: 12 }
+                                    }
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: '#21262d',
+                                    titleColor: '#f0f6fc',
+                                    bodyColor: '#f0f6fc',
+                                    borderColor: '#30363d',
+                                    borderWidth: 1
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Tahun',
+                                        color: '#8b949e'
+                                    },
+                                    grid: { color: '#30363d' },
+                                    ticks: { color: '#8b949e' }
+                                },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Jumlah Permintaan',
+                                        color: '#8b949e'
+                                    },
+                                    grid: { color: '#30363d' },
+                                    ticks: { color: '#8b949e' }
+                                }
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error("Chart error:", err);
                 }
+            });
 
-                new Chart(ctxLine, {
-                    type: 'line',
-                    data: { labels: labels, datasets: datasets },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Trend Forecasting Semua Ukuran',
-                                color: '#f0f6fc',
-                                font: { size: 16 }
-                            },
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    color: '#8b949e',
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: '#21262d',
-                                titleColor: '#f0f6fc',
-                                bodyColor: '#f0f6fc',
-                                borderColor: '#30363d',
-                                borderWidth: 1
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Tahun',
-                                    color: '#8b949e'
-                                },
-                                grid: { color: '#30363d' },
-                                ticks: { color: '#8b949e' }
-                            },
-                            y: {
-                                beginAtZero: false,
-                                title: {
-                                    display: true,
-                                    text: 'Jumlah Permintaan',
-                                    color: '#8b949e'
-                                },
-                                grid: { color: '#30363d' },
-                                ticks: { color: '#8b949e' }
-                            }
-                        }
-                    }
-                });
+            // Theme toggle functionality
+            document.getElementById('themeToggle').addEventListener('click', function() {
+                const body = document.body;
+                const themeIcon = document.getElementById('themeIcon');
 
-                // === Grafik 2: Perbandingan per tahun (Bar Chart)
-                const ctxBar = document.getElementById('yearlyChart').getContext('2d');
+                if (body.classList.contains('light-mode')) {
+                    // Switch to dark mode
+                    body.classList.remove('light-mode');
+                    themeIcon.classList.remove('bi-sun-fill');
+                    themeIcon.classList.add('bi-moon-fill');
+                } else {
+                    // Switch to light mode
+                    body.classList.add('light-mode');
+                    themeIcon.classList.remove('bi-moon-fill');
+                    themeIcon.classList.add('bi-sun-fill');
+                }
+            });
 
-                // Dataset untuk setiap ukuran (stacked)
-                const barDatasets = Object.keys(chartData).map((key, idx) => ({
-                    label: key,
-                    data: chartData[key],
-                    backgroundColor: colors[idx % colors.length] + 'CC',
-                    borderColor: colors[idx % colors.length],
-                    borderWidth: 1
-                }));
+            // Fungsi untuk menampilkan detail perhitungan
+            function showCalculation(ukuran, alpha, actualLast, forecastLast, forecastNext) {
+                const part1 = (alpha * actualLast).toFixed(2);
+                const part2 = ((1 - alpha) * forecastLast).toFixed(2);
 
-                new Chart(ctxBar, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: barDatasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Distribusi Permintaan per Tahun',
-                                color: '#f0f6fc',
-                                font: { size: 16 }
-                            },
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    color: '#8b949e',
-                                    font: { size: 12 }
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: '#21262d',
-                                titleColor: '#f0f6fc',
-                                bodyColor: '#f0f6fc',
-                                borderColor: '#30363d',
-                                borderWidth: 1
-                            }
-                        },
-                        scales: {
-                            x: {
-                                stacked: true,
-                                title: {
-                                    display: true,
-                                    text: 'Tahun',
-                                    color: '#8b949e'
-                                },
-                                grid: { color: '#30363d' },
-                                ticks: { color: '#8b949e' }
-                            },
-                            y: {
-                                stacked: true,
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Jumlah Permintaan',
-                                    color: '#8b949e'
-                                },
-                                grid: { color: '#30363d' },
-                                ticks: { color: '#8b949e' }
-                            }
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error("Chart error:", err);
+                const calculation = `
+                    <div class="calculation-card">
+                        <h6 class="text-primary">Perhitungan Forecast untuk Ukuran <strong>${ukuran}</strong>:</h6>
+                    </div>
+
+                    <div class="calculation-card">
+                        <strong>Rumus yang digunakan:</strong>
+                        <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
+                    </div>
+
+                    <div class="calculation-card">
+                        <strong>Nilai Variabel:</strong>
+                        <div class="calculation-step">
+                            - Alpha (α) = <strong>${alpha}</strong><br>
+                            - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
+                            - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+                        </div>
+                    </div>
+
+                    <div class="calculation-card">
+                        <strong>Langkah Perhitungan:</strong>
+                        <div class="calculation-step">
+                            1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
+                            2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
+                            3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success mt-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+                    </div>
+                `;
+
+                document.getElementById('calculationDetails').innerHTML = calculation;
+                new bootstrap.Modal(document.getElementById('calculationModal')).show();
             }
-        });
+// Fungsi untuk menampilkan detail perhitungan MAPE
+function showMAPECalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse) {
+    console.log('MAE Function Received:', {ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse});
+    const part1 = (alpha * actualLast).toFixed(2);
+    const part2 = ((1 - alpha) * forecastLast).toFixed(2);
 
-        // Theme toggle functionality
-        document.getElementById('themeToggle').addEventListener('click', function() {
-            const body = document.body;
-            const themeIcon = document.getElementById('themeIcon');
+    const calculation = `
+        <div class="calculation-card">
+            <h6 class="text-primary">Detail Perhitungan - MAPE Terbaik</h6>
+            <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
+        </div>
 
-            if (body.classList.contains('light-mode')) {
-                // Switch to dark mode
-                body.classList.remove('light-mode');
-                themeIcon.classList.remove('bi-sun-fill');
-                themeIcon.classList.add('bi-moon-fill');
-            } else {
-                // Switch to light mode
-                body.classList.add('light-mode');
-                themeIcon.classList.remove('bi-moon-fill');
-                themeIcon.classList.add('bi-sun-fill');
-            }
-        });
-
-        // Fungsi untuk menampilkan detail perhitungan
-        function showCalculation(ukuran, alpha, actualLast, forecastLast, forecastNext) {
-            const part1 = (alpha * actualLast).toFixed(2);
-            const part2 = ((1 - alpha) * forecastLast).toFixed(2);
-
-            const calculation = `
-                <div class="calculation-card">
-                    <h6 class="text-primary">Perhitungan Forecast untuk Ukuran <strong>${ukuran}</strong>:</h6>
-                </div>
-
-                <div class="calculation-card">
-                    <strong>Rumus yang digunakan:</strong>
-                    <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
-                </div>
-
-                <div class="calculation-card">
-                    <strong>Nilai Variabel:</strong>
+        <div class="calculation-card">
+            <strong>Metrik Evaluasi:</strong>
+            <div class="row text-center mt-2">
+                <div class="col-md-4">
                     <div class="calculation-step">
-                        - Alpha (α) = <strong>${alpha}</strong><br>
-                        - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
-                        - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+                        <strong>MAPE</strong><br>
+                        <span class="text-success fw-bold">${mape}%</span>
+                        <span class="badge bg-success ms-1">Terbaik</span>
                     </div>
                 </div>
-
-                <div class="calculation-card">
-                    <strong>Langkah Perhitungan:</strong>
+                <div class="col-md-4">
                     <div class="calculation-step">
-                        1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
-                        2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
-                        3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+                        <strong>MAE</strong><br>
+                        <span class="text-info fw-bold">${mae}</span>
                     </div>
                 </div>
-
-                <div class="alert alert-success mt-3">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MSE</strong><br>
+                        <span class="text-warning fw-bold">${mse}</span>
+                    </div>
                 </div>
-            `;
+            </div>
+        </div>
 
-            document.getElementById('calculationDetails').innerHTML = calculation;
-            new bootstrap.Modal(document.getElementById('calculationModal')).show();
-        }
-    </script>
+        <div class="calculation-card">
+            <strong>Rumus Exponential Smoothing:</strong>
+            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
+        </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+        <div class="calculation-card">
+            <strong>Nilai Variabel:</strong>
+            <div class="calculation-step">
+                - Alpha (α) = <strong>${alpha}</strong><br>
+                - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
+                - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+            </div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Langkah Perhitungan Forecast:</strong>
+            <div class="calculation-step">
+                1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
+                2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
+                3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+            </div>
+        </div>
+
+        <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+        </div>
+    `;
+
+    document.getElementById('calculationDetails').innerHTML = calculation;
+    new bootstrap.Modal(document.getElementById('calculationModal')).show();
+}
+
+// Fungsi untuk menampilkan detail perhitungan MAE
+function showMAECalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse) {
+    console.log('MAE Function Received:', {ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse});
+    
+    // Handle undefined values
+    if (mape === undefined || isNaN(mape)) mape = 0;
+    if (mae === undefined || isNaN(mae)) mae = 0;
+    if (mse === undefined || isNaN(mse)) mse = 0;
+    
+    const part1 = (alpha * actualLast).toFixed(2);
+    const part2 = ((1 - alpha) * forecastLast).toFixed(2);
+
+    const calculation = `
+        <div class="calculation-card">
+            <h6 class="text-primary">Detail Perhitungan - MAE Terbaik</h6>
+            <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Metrik Evaluasi:</strong>
+            <div class="row text-center mt-2">
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MAPE</strong><br>
+                        <span class="text-muted fw-bold">${mape}%</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MAE</strong><br>
+                        <span class="text-info fw-bold">${mae}</span>
+                        <span class="badge bg-success ms-1">Terbaik</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MSE</strong><br>
+                        <span class="text-warning fw-bold">${mse}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Rumus Exponential Smoothing:</strong>
+            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Nilai Variabel:</strong>
+            <div class="calculation-step">
+                - Alpha (α) = <strong>${alpha}</strong><br>
+                - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
+                - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+            </div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Langkah Perhitungan Forecast:</strong>
+            <div class="calculation-step">
+                1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
+                2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
+                3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+            </div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Rumus MAE (Mean Absolute Error):</strong>
+            <div class="formula">MAE = (1/n) × Σ |A<sub>t</sub> - F<sub>t</sub>|</div>
+            <small class="text-muted">Mengukur rata-rata error absolut antara nilai aktual dan forecast</small>
+        </div>
+
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Alpha ${alpha} dipilih</strong> karena memberikan <strong>MAE terkecil (${mae})</strong> untuk ukuran ${ukuran}
+        </div>
+
+        <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+        </div>
+    `;
+
+    document.getElementById('calculationDetails').innerHTML = calculation;
+    new bootstrap.Modal(document.getElementById('calculationModal')).show();
+}
+
+// Fungsi untuk menampilkan detail perhitungan MSE
+function showMSECalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse) {
+    const part1 = (alpha * actualLast).toFixed(2);
+    const part2 = ((1 - alpha) * forecastLast).toFixed(2);
+
+    const calculation = `
+        <div class="calculation-card">
+            <h6 class="text-primary">Detail Perhitungan - MSE Terbaik</h6>
+            <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Metrik Evaluasi:</strong>
+            <div class="row text-center mt-2">
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MAPE</strong><br>
+                        <span class="text-muted fw-bold">${mape}%</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MAE</strong><br>
+                        <span class="text-muted fw-bold">${mae}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="calculation-step">
+                        <strong>MSE</strong><br>
+                        <span class="text-warning fw-bold">${mse}</span>
+                        <span class="badge bg-success ms-1">Terbaik</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Rumus Exponential Smoothing:</strong>
+            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Nilai Variabel:</strong>
+            <div class="calculation-step">
+                - Alpha (α) = <strong>${alpha}</strong><br>
+                - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
+                - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+            </div>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Langkah Perhitungan Forecast:</strong>
+            <div class="calculation-step">
+                1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
+                2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
+                3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+            </div>
+        </div>
+
+        <div class="calculation-card">      
+            <strong>Rumus MSE (Mean Squared Error):</strong>
+            <div class="formula">MSE = (1/n) × Σ (A<sub>t</sub> - F<sub>t</sub>)²</div>
+            <small class="text-muted">Mengukur rata-rata error kuadrat, lebih sensitif terhadap outlier</small>
+        </div>
+
+        <div class="alert alert-warning mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Alpha ${alpha} dipilih</strong> karena memberikan <strong>MSE terkecil (${mse})</strong> untuk ukuran ${ukuran}
+        </div>
+
+        <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+        </div>
+    `;
+
+    document.getElementById('calculationDetails').innerHTML = calculation;
+    new bootstrap.Modal(document.getElementById('calculationModal')).show();
+}
+        </script>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>

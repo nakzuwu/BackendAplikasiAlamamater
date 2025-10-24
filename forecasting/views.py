@@ -277,7 +277,6 @@ def prepare_context(results, chart_data, years, all_calculations):
     best_mape_all = min([r['mape'] for r in results]) if results else None
     total_calculations = sum(len(calcs) for calcs in all_calculations.values())
     
-    # Prepare data for MAE and MSE best tables
     mae_best_results = []
     mse_best_results = []
     
@@ -291,10 +290,11 @@ def prepare_context(results, chart_data, years, all_calculations):
                 mae_best_results.append({
                     'ukuran': ukuran,
                     'alpha': best_mae_calc['alpha'],
-                    'mape': best_mae_calc['mape'],
-                    'mae': best_mae_calc['mae'],
-                    'mse': best_mae_calc['mse'],
+                    'mape': best_mae_calc['mape'],  # Pastikan ini ada
+                    'mae': best_mae_calc['mae'],    # Pastikan ini ada  
+                    'mse': best_mae_calc['mse'],    # Pastikan ini ada
                     'forecast_next': best_mae_calc['forecast_next'],
+                    'forecast_last': best_mae_calc['forecast_values'][-1] if best_mae_calc['forecast_values'] else original_result['actual_last'],
                     'tahun_last': original_result['tahun_last'],
                     'actual_last': original_result['actual_last'],
                     'tahun_next': original_result['tahun_next'],
@@ -307,10 +307,11 @@ def prepare_context(results, chart_data, years, all_calculations):
                 mse_best_results.append({
                     'ukuran': ukuran,
                     'alpha': best_mse_calc['alpha'],
-                    'mape': best_mse_calc['mape'],
-                    'mae': best_mse_calc['mae'],
-                    'mse': best_mse_calc['mse'],
+                    'mape': best_mse_calc['mape'],  # Pastikan ini ada
+                    'mae': best_mse_calc['mae'],    # Pastikan ini ada
+                    'mse': best_mse_calc['mse'],    # Pastikan ini ada
                     'forecast_next': best_mse_calc['forecast_next'],
+                    'forecast_last': best_mse_calc['forecast_values'][-1] if best_mse_calc['forecast_values'] else original_result['actual_last'],
                     'tahun_last': original_result['tahun_last'],
                     'actual_last': original_result['actual_last'],
                     'tahun_next': original_result['tahun_next'],
