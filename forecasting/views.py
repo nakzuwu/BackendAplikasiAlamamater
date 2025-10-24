@@ -138,27 +138,32 @@ def initialize_best_results():
         'mse': float('inf')
     }
 
-def calculate_forecast_with_alpha(data, alpha):
-    """Calculate forecast and metrics for a specific alpha"""
+def calculate_forecast_with_alpha(data, alpha, years):
+    """Calculate forecast and metrics for a specific alpha dengan detail tahunan lengkap"""
     forecast_values = single_exponential_smoothing(data, alpha)
     
     if len(data) > 1 and len(forecast_values) > 1:
-        actual_eval = data[1:]
-        pred_eval = forecast_values[1:]
+        # Hitung metrics per tahun
+        yearly_metrics = calculate_detailed_metrics_by_year(data, forecast_values, years)
+        summary_metrics = calculate_summary_metrics(yearly_metrics)
         
-        mape, mae, mse = calculate_all_metrics(actual_eval, pred_eval)
-        
-        # Calculate forecast for next period
+        # Hitung forecast untuk periode berikutnya
         forecast_next = calculate_forecast_next(data, alpha, forecast_values)
+        
+        # Hitung perhitungan tahunan
+        yearly_calculations = calculate_yearly_calculations(data, forecast_values, alpha, years)
         
         return {
             'alpha': alpha,
-            'mape': round(mape, 2),
-            'mae': round(mae, 2),
-            'mse': round(mse, 2),
+            'mape': summary_metrics['mape'],
+            'mae': summary_metrics['mae'],
+            'mse': summary_metrics['mse'],
             'forecast_values': [round(x, 2) for x in forecast_values],
             'actual_values': data,
-            'forecast_next': round(forecast_next, 2)
+            'forecast_next': round(forecast_next, 2),
+            'yearly_calculations': yearly_calculations,
+            'yearly_metrics': yearly_metrics,
+            'summary_metrics': summary_metrics
         }
     
     return None
@@ -188,12 +193,15 @@ def analyze_forecast_trend(forecast_next, actual_last):
         return "Stabil"
 
 def create_final_result(ukuran_name, data, years, best_results, calculations):
-    """Create final result dictionary for a size"""
+    """Create final result dictionary for a size dengan data tahunan lengkap"""
     tahun_last = years[-1]
     actual_last = data[-1]
     forecast_last = best_results['forecast_mape'][-1] if best_results['forecast_mape'] else 0
     next_year = tahun_last + 1
     forecast_next = calculate_forecast_next(data, best_results['alpha_mape'], best_results['forecast_mape'])
+    
+    # Dapatkan calculation terbaik untuk MAPE
+    best_mape_calc = next((calc for calc in calculations if calc['alpha'] == best_results['alpha_mape']), None)
     
     # Analyze trends
     data_trend = analyze_trend(data)
@@ -220,6 +228,12 @@ def create_final_result(ukuran_name, data, years, best_results, calculations):
         'data_variance': round(np.var(data), 2) if len(data) > 1 else 0
     }
     
+    # Tambahkan data tahunan lengkap jika tersedia
+    if best_mape_calc:
+        result['yearly_calculations'] = best_mape_calc.get('yearly_calculations', [])
+        result['yearly_metrics'] = best_mape_calc.get('yearly_metrics', [])
+        result['metrics_detail'] = best_mape_calc.get('metrics_detail', {})
+    
     chart_data = best_results['forecast_mape'] + [round(forecast_next, 2)] if best_results['forecast_mape'] else []
     
     return {
@@ -229,13 +243,12 @@ def create_final_result(ukuran_name, data, years, best_results, calculations):
     }
 
 def process_single_size_forecast(ukuran_name, data, years):
-    """Process forecasting for a single size"""
-    # Test all alpha values
+    """Process forecasting for a single size dengan years"""
     calculations = []
     best_results = initialize_best_results()
     
     for alpha in [i/10 for i in range(1, 10)]:
-        calculation = calculate_forecast_with_alpha(data, alpha)
+        calculation = calculate_forecast_with_alpha(data, alpha, years)
         if calculation:
             calculations.append(calculation)
             update_best_results(best_results, calculation, alpha)
@@ -272,13 +285,135 @@ def process_forecasting(ukuran_cols, df, tahun_col, years):
     
     return results, chart_data, all_calculations
 
+def calculate_yearly_calculations(data, forecast_values, alpha, years):
+    """Menghitung semua perhitungan dari tahun pertama ke tahun berikutnya"""
+    yearly_calculations = []
+    
+    # Tahun pertama: F1 = A1 (inisialisasi)
+    yearly_calculations.append({
+        'tahun': years[0] if years else "Tahun 1",
+        'actual': data[0],
+        'forecast': data[0],
+        'calculation': f"F₁ = A₁ = {data[0]} (Inisialisasi)",
+        'alpha': alpha,
+        'type': 'inisialisasi'
+    })
+    
+    # Tahun kedua dan seterusnya
+    for t in range(1, len(data)):
+        actual_prev = data[t-1]
+        forecast_prev = forecast_values[t-1]
+        forecast_current = forecast_values[t]
+        
+        calculation = f"F₍{t+1}₎ = {alpha} × {actual_prev} + {1-alpha} × {forecast_prev} = {forecast_current}"
+        
+        yearly_calculations.append({
+            'tahun': years[t] if t < len(years) else f"Tahun {t+1}",
+            'actual': data[t],
+            'forecast': forecast_current,
+            'calculation': calculation,
+            'alpha': alpha,
+            'type': 'smoothing',
+            'actual_prev': actual_prev,
+            'forecast_prev': forecast_prev
+        })
+    
+    return yearly_calculations
+
+def calculate_detailed_metrics_by_year(actual_values, forecast_values, years):
+    """Menghitung semua metrik evaluasi per tahun dengan detail lengkap"""
+    yearly_metrics = []
+    
+    # Mulai dari tahun ke-2 karena tahun pertama hanya inisialisasi
+    for i in range(1, len(actual_values)):
+        actual = actual_values[i]
+        forecast = forecast_values[i]
+        
+        # Hitung semua jenis error
+        absolute_error = abs(actual - forecast)
+        squared_error = (actual - forecast) ** 2
+        percentage_error = (absolute_error / actual) * 100 if actual != 0 else 0
+        
+        yearly_metrics.append({
+            'tahun': years[i] if i < len(years) else f"Tahun {i+1}",
+            'actual': round(actual, 2),
+            'forecast': round(forecast, 2),
+            'absolute_error': round(absolute_error, 2),
+            'squared_error': round(squared_error, 2),
+            'percentage_error': round(percentage_error, 2)
+        })
+    
+    return yearly_metrics
+
+def calculate_summary_metrics(yearly_metrics):
+    """Menghitung summary metrics dari data tahunan"""
+    if not yearly_metrics:
+        return {}
+    
+    absolute_errors = [m['absolute_error'] for m in yearly_metrics]
+    squared_errors = [m['squared_error'] for m in yearly_metrics]
+    percentage_errors = [m['percentage_error'] for m in yearly_metrics]
+    
+    return {
+        'mape': round(sum(percentage_errors) / len(percentage_errors), 2),
+        'mae': round(sum(absolute_errors) / len(absolute_errors), 2),
+        'mse': round(sum(squared_errors) / len(squared_errors), 2),
+        'total_years': len(yearly_metrics)
+    }
+
+def calculate_metrics_detailed(actual, forecast):
+    """Menghitung metrik evaluasi dengan detail"""
+    actual = np.array(actual[1:])  # Mulai dari tahun kedua
+    forecast = np.array(forecast[1:])
+    
+    min_len = min(len(actual), len(forecast))
+    actual = actual[:min_len]
+    forecast = forecast[:min_len]
+    
+    # Hitung semua error
+    errors = np.abs(actual - forecast)
+    squared_errors = (actual - forecast) ** 2
+    percentage_errors = np.abs((actual - forecast) / actual) * 100
+    
+    # Hindari division by zero
+    non_zero_mask = actual != 0
+    actual_non_zero = actual[non_zero_mask]
+    percentage_errors_non_zero = percentage_errors[non_zero_mask]
+    
+    mape = np.mean(percentage_errors_non_zero) if len(percentage_errors_non_zero) > 0 else float('inf')
+    mae = np.mean(errors)
+    mse = np.mean(squared_errors)
+    
+    # Detail per error
+    error_details = []
+    for i, (a, f) in enumerate(zip(actual, forecast)):
+        error_details.append({
+            'tahun': i + 2,  # Mulai dari tahun 2
+            'actual': a,
+            'forecast': f,
+            'error': errors[i],
+            'squared_error': squared_errors[i],
+            'percentage_error': percentage_errors[i] if a != 0 else 0
+        })
+    
+    return {
+        'mape': mape,
+        'mae': mae,
+        'mse': mse,
+        'error_details': error_details,
+        'total_errors': len(errors)
+    }
+
 def prepare_context(results, chart_data, years, all_calculations):
-    """Prepare context for template rendering"""
     best_mape_all = min([r['mape'] for r in results]) if results else None
     total_calculations = sum(len(calcs) for calcs in all_calculations.values())
     
+    # Prepare data for MAE and MSE best tables
     mae_best_results = []
     mse_best_results = []
+    
+    # Prepare data for detailed calculations
+    detailed_data = {}
     
     for ukuran, calculations in all_calculations.items():
         # Find best MAE for this ukuran
@@ -290,15 +425,20 @@ def prepare_context(results, chart_data, years, all_calculations):
                 mae_best_results.append({
                     'ukuran': ukuran,
                     'alpha': best_mae_calc['alpha'],
-                    'mape': best_mae_calc['mape'],  # Pastikan ini ada
-                    'mae': best_mae_calc['mae'],    # Pastikan ini ada  
-                    'mse': best_mae_calc['mse'],    # Pastikan ini ada
+                    'mape': best_mae_calc['mape'],
+                    'mae': best_mae_calc['mae'],
+                    'mse': best_mae_calc['mse'],
                     'forecast_next': best_mae_calc['forecast_next'],
                     'forecast_last': best_mae_calc['forecast_values'][-1] if best_mae_calc['forecast_values'] else original_result['actual_last'],
                     'tahun_last': original_result['tahun_last'],
                     'actual_last': original_result['actual_last'],
                     'tahun_next': original_result['tahun_next'],
-                    'forecast_trend': analyze_forecast_trend(best_mae_calc['forecast_next'], original_result['actual_last'])
+                    'forecast_trend': analyze_forecast_trend(best_mae_calc['forecast_next'], original_result['actual_last']),
+                    # Tambahkan data untuk detail perhitungan
+                    'actual_values': best_mae_calc['actual_values'],
+                    'forecast_values': best_mae_calc['forecast_values'],
+                    'yearly_calculations': best_mae_calc.get('yearly_calculations', []),
+                    'metrics_detail': best_mae_calc.get('metrics_detail', {})
                 })
             
             # Find best MSE for this ukuran
@@ -307,16 +447,34 @@ def prepare_context(results, chart_data, years, all_calculations):
                 mse_best_results.append({
                     'ukuran': ukuran,
                     'alpha': best_mse_calc['alpha'],
-                    'mape': best_mse_calc['mape'],  # Pastikan ini ada
-                    'mae': best_mse_calc['mae'],    # Pastikan ini ada
-                    'mse': best_mse_calc['mse'],    # Pastikan ini ada
+                    'mape': best_mse_calc['mape'],
+                    'mae': best_mse_calc['mae'],
+                    'mse': best_mse_calc['mse'],
                     'forecast_next': best_mse_calc['forecast_next'],
                     'forecast_last': best_mse_calc['forecast_values'][-1] if best_mse_calc['forecast_values'] else original_result['actual_last'],
                     'tahun_last': original_result['tahun_last'],
                     'actual_last': original_result['actual_last'],
                     'tahun_next': original_result['tahun_next'],
-                    'forecast_trend': analyze_forecast_trend(best_mse_calc['forecast_next'], original_result['actual_last'])
+                    'forecast_trend': analyze_forecast_trend(best_mse_calc['forecast_next'], original_result['actual_last']),
+                    # Tambahkan data untuk detail perhitungan
+                    'actual_values': best_mse_calc['actual_values'],
+                    'forecast_values': best_mse_calc['forecast_values'],
+                    'yearly_calculations': best_mse_calc.get('yearly_calculations', []),
+                    'metrics_detail': best_mse_calc.get('metrics_detail', {})
                 })
+    
+    # Tambahkan actual_values dan forecast_values ke results (untuk MAPE)
+    for result in results:
+        ukuran = result['ukuran']
+        if ukuran in all_calculations:
+            # Cari calculation dengan alpha_mape
+            calculations = all_calculations[ukuran]
+            best_mape_calc = next((calc for calc in calculations if calc['alpha'] == result['alpha_mape']), None)
+            if best_mape_calc:
+                result['actual_values'] = best_mape_calc['actual_values']
+                result['forecast_values'] = best_mape_calc['forecast_values']
+                result['yearly_calculations'] = best_mape_calc.get('yearly_calculations', [])
+                result['metrics_detail'] = best_mape_calc.get('metrics_detail', {})
     
     return {
         'results': results,

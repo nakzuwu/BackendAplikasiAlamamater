@@ -402,10 +402,22 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info" 
-                                onclick="showMAPECalculation('{{ r.ukuran }}', {{ r.alpha_mape }}, {{ r.actual_last }}, {{ r.forecast_last }}, {{ r.forecast_next }}, {{ r.mape }}, {{ r.mae }}, {{ r.mse }})">
-                            <i class="bi bi-calculator me-1"></i>Lihat
-                        </button>
+    <button class="btn btn-sm btn-outline-info" 
+            onclick="showAllCalculations(
+                '{{ r.ukuran }}', 
+                {{ r.alpha_mape }}, 
+                {{ r.actual_last }}, 
+                {{ r.forecast_last }}, 
+                {{ r.forecast_next }}, 
+                {{ r.mape }},
+                {{ r.mae }},
+                {{ r.mse }},
+                'MAPE',
+                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                {{ r.yearly_metrics|default_if_none:"[]"|safe }}
+            )">
+        <i class="bi bi-calculator me-1"></i>Lihat Detail
+    </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -468,19 +480,22 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info" 
-                                onclick="showMAECalculation(
-                                    '{{ r.ukuran }}', 
-                                    {{ r.alpha }}, 
-                                    {{ r.actual_last }}, 
-                                    {{ r.forecast_last|default:r.actual_last }}, 
-                                    {{ r.forecast_next }}, 
-                                    {{ r.mape }},
-                                    {{ r.mae }},
-                                    {{ r.mse }}  <!-- Pastikan ini parameter ke-8 -->
-                                )">
-                            <i class="bi bi-calculator me-1"></i>Lihat
-                        </button>
+    <button class="btn btn-sm btn-outline-info" 
+            onclick="showAllCalculations(
+                '{{ r.ukuran }}', 
+                {{ r.alpha }}, 
+                {{ r.actual_last }}, 
+                {{ r.forecast_last }}, 
+                {{ r.forecast_next }}, 
+                {{ r.mape }},
+                {{ r.mae }},
+                {{ r.mse }},
+                'MAE',
+                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                {{ r.yearly_metrics|default_if_none:"[]"|safe }}
+            )">
+        <i class="bi bi-calculator me-1"></i>Lihat Detail
+    </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -543,20 +558,23 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info" 
-                                onclick="showMSECalculation(
-                                    '{{ r.ukuran }}', 
-                                    {{ r.alpha }}, 
-                                    {{ r.actual_last }}, 
-                                    {{ r.forecast_last|default:r.actual_last }}, 
-                                    {{ r.forecast_next }}, 
-                                    {{ r.mape }},
-                                    {{ r.mae }},
-                                    {{ r.mse }}  <!-- Pastikan ini parameter ke-8 -->
-                                )">
-                            <i class="bi bi-calculator me-1"></i>Lihat
-                        </button>
-                    </td>
+    <button class="btn btn-sm btn-outline-info" 
+            onclick="showAllCalculations(
+                '{{ r.ukuran }}', 
+                {{ r.alpha }}, 
+                {{ r.actual_last }}, 
+                {{ r.forecast_last }}, 
+                {{ r.forecast_next }}, 
+                {{ r.mape }},
+                {{ r.mae }},
+                {{ r.mse }},
+                'MSE',
+                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                {{ r.yearly_metrics|default_if_none:"[]"|safe }}
+            )">
+        <i class="bi bi-calculator me-1"></i>Lihat Detail
+    </button>
+</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -983,236 +1001,229 @@
                 document.getElementById('calculationDetails').innerHTML = calculation;
                 new bootstrap.Modal(document.getElementById('calculationModal')).show();
             }
-// Fungsi untuk menampilkan detail perhitungan MAPE
-function showMAPECalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse) {
-    console.log('MAE Function Received:', {ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse});
-    const part1 = (alpha * actualLast).toFixed(2);
-    const part2 = ((1 - alpha) * forecastLast).toFixed(2);
-
-    const calculation = `
+// Fungsi utama untuk menampilkan semua perhitungan
+function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse, metricType, yearlyCalculations, yearlyMetrics) {
+    let html = `
         <div class="calculation-card">
-            <h6 class="text-primary">Detail Perhitungan - MAPE Terbaik</h6>
+            <h6 class="text-primary">📊 Detail Perhitungan Lengkap - ${metricType} Terbaik</h6>
             <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Metrik Evaluasi:</strong>
-            <div class="row text-center mt-2">
-                <div class="col-md-4">
-                    <div class="calculation-step">
-                        <strong>MAPE</strong><br>
-                        <span class="text-success fw-bold">${mape}%</span>
-                        <span class="badge bg-success ms-1">Terbaik</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="calculation-step">
-                        <strong>MAE</strong><br>
-                        <span class="text-info fw-bold">${mae}</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="calculation-step">
-                        <strong>MSE</strong><br>
-                        <span class="text-warning fw-bold">${mse}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Rumus Exponential Smoothing:</strong>
-            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Nilai Variabel:</strong>
-            <div class="calculation-step">
-                - Alpha (α) = <strong>${alpha}</strong><br>
-                - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
-                - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
-            </div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Langkah Perhitungan Forecast:</strong>
-            <div class="calculation-step">
-                1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
-                2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
-                3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
-            </div>
-        </div>
-
-        <div class="alert alert-success mt-3">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
         </div>
     `;
 
-    document.getElementById('calculationDetails').innerHTML = calculation;
-    new bootstrap.Modal(document.getElementById('calculationModal')).show();
-}
+    // 1. TAMPILKAN PERHITUNGAN EXPONENTIAL SMOOTHING PER TAHUN
+    if (yearlyCalculations && yearlyCalculations.length > 0) {
+        html += `
+            <div class="calculation-card">
+                <h6 class="text-success">📈 Perhitungan Exponential Smoothing per Tahun</h6>
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Tahun</th>
+                                <th>Actual (A<sub>t</sub>)</th>
+                                <th>Forecast (F<sub>t</sub>)</th>
+                                <th>Rumus Perhitungan</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        yearlyCalculations.forEach(calc => {
+            html += `
+                <tr>
+                    <td><strong>${calc.tahun}</strong></td>
+                    <td>${calc.actual}</td>
+                    <td>${calc.forecast}</td>
+                    <td><small class="text-primary">${calc.calculation}</small></td>
+                    <td>
+                        <span class="badge bg-${calc.type === 'inisialisasi' ? 'secondary' : 'primary'}">
+                            ${calc.type === 'inisialisasi' ? 'Inisialisasi' : 'Smoothing'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
 
-// Fungsi untuk menampilkan detail perhitungan MAE
-function showMAECalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse) {
-    console.log('MAE Function Received:', {ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse});
-    
-    // Handle undefined values
-    if (mape === undefined || isNaN(mape)) mape = 0;
-    if (mae === undefined || isNaN(mae)) mae = 0;
-    if (mse === undefined || isNaN(mse)) mse = 0;
-    
+    // 2. TAMPILKAN PERHITUNGAN METRIK EVALUASI PER TAHUN (MAPE, MAE, MSE)
+    if (yearlyMetrics && yearlyMetrics.length > 0) {
+        html += `
+            <div class="calculation-card">
+                <h6 class="text-warning">📋 Perhitungan Metrik Evaluasi per Tahun</h6>
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Tahun</th>
+                                <th>Actual</th>
+                                <th>Forecast</th>
+                                <th>AE<br><small>|A-F|</small></th>
+                                <th>SE<br><small>(A-F)²</small></th>
+                                <th>PE<br><small>|(A-F)/A|×100%</small></th>
+                                <th>Detail Perhitungan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        yearlyMetrics.forEach(metric => {
+            const ae = metric.absolute_error;
+            const se = metric.squared_error;
+            const pe = metric.percentage_error;
+            
+            html += `
+                <tr>
+                    <td><strong>${metric.tahun}</strong></td>
+                    <td>${metric.actual}</td>
+                    <td>${metric.forecast}</td>
+                    <td class="text-info">${ae}</td>
+                    <td class="text-warning">${se}</td>
+                    <td class="text-danger">${pe}%</td>
+                    <td>
+                        <small>
+                            AE = |${metric.actual} - ${metric.forecast}| = ${ae}<br>
+                            SE = (${metric.actual} - ${metric.forecast})² = ${se}<br>
+                            PE = |(${metric.actual} - ${metric.forecast})/${metric.actual}|×100% = ${pe}%
+                        </small>
+                    </td>
+                </tr>
+            `;
+        });
+
+        // RATA-RATA
+        html += `
+                            <tr class="table-success fw-bold">
+                                <td colspan="3" class="text-end">RATA-RATA →</td>
+                                <td class="text-info">${mae} (MAE)</td>
+                                <td class="text-warning">${mse} (MSE)</td>
+                                <td class="text-danger">${mape}% (MAPE)</td>
+                                <td>
+                                    <small>
+                                        MAE = ΣAE / ${yearlyMetrics.length} = ${mae}<br>
+                                        MSE = ΣSE / ${yearlyMetrics.length} = ${mse}<br>
+                                        MAPE = ΣPE / ${yearlyMetrics.length} = ${mape}%
+                                    </small>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    // 3. TAMPILKAN PERHITUNGAN FORECAST TAHUN BERIKUTNYA
     const part1 = (alpha * actualLast).toFixed(2);
     const part2 = ((1 - alpha) * forecastLast).toFixed(2);
-
-    const calculation = `
+    
+    html += `
         <div class="calculation-card">
-            <h6 class="text-primary">Detail Perhitungan - MAE Terbaik</h6>
-            <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Metrik Evaluasi:</strong>
-            <div class="row text-center mt-2">
-                <div class="col-md-4">
-                    <div class="calculation-step">
-                        <strong>MAPE</strong><br>
-                        <span class="text-muted fw-bold">${mape}%</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="calculation-step">
-                        <strong>MAE</strong><br>
-                        <span class="text-info fw-bold">${mae}</span>
-                        <span class="badge bg-success ms-1">Terbaik</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="calculation-step">
-                        <strong>MSE</strong><br>
-                        <span class="text-warning fw-bold">${mse}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Rumus Exponential Smoothing:</strong>
-            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Nilai Variabel:</strong>
+            <h6 class="text-info">🔮 Perhitungan Forecast Tahun Berikutnya</h6>
             <div class="calculation-step">
-                - Alpha (α) = <strong>${alpha}</strong><br>
-                - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
-                - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
+                <strong>Rumus:</strong> F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub>
             </div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Langkah Perhitungan Forecast:</strong>
             <div class="calculation-step">
+                <strong>Nilai Variabel:</strong><br>
+                - Alpha (α) = ${alpha}<br>
+                - Aktual Terakhir (A<sub>t</sub>) = ${actualLast}<br>
+                - Forecast Terakhir (F<sub>t</sub>) = ${forecastLast}
+            </div>
+            <div class="calculation-step">
+                <strong>Langkah Perhitungan:</strong><br>
                 1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
                 2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
-                3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
+                3. F<sub>t+1</sub> = <strong class="text-success">${forecastNext}</strong>
             </div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Rumus MAE (Mean Absolute Error):</strong>
-            <div class="formula">MAE = (1/n) × Σ |A<sub>t</sub> - F<sub>t</sub>|</div>
-            <small class="text-muted">Mengukur rata-rata error absolut antara nilai aktual dan forecast</small>
-        </div>
-
-        <div class="alert alert-info mt-3">
-            <i class="bi bi-info-circle me-2"></i>
-            <strong>Alpha ${alpha} dipilih</strong> karena memberikan <strong>MAE terkecil (${mae})</strong> untuk ukuran ${ukuran}
-        </div>
-
-        <div class="alert alert-success mt-3">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
         </div>
     `;
 
-    document.getElementById('calculationDetails').innerHTML = calculation;
-    new bootstrap.Modal(document.getElementById('calculationModal')).show();
-}
+    // 4. TAMPILKAN SUMMARY METRIK
+    let badgeClass = 'success';
+    if (metricType === 'MAE') badgeClass = 'info';
+    if (metricType === 'MSE') badgeClass = 'warning';
 
-// Fungsi untuk menampilkan detail perhitungan MSE
-function showMSECalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse) {
-    const part1 = (alpha * actualLast).toFixed(2);
-    const part2 = ((1 - alpha) * forecastLast).toFixed(2);
-
-    const calculation = `
+    html += `
         <div class="calculation-card">
-            <h6 class="text-primary">Detail Perhitungan - MSE Terbaik</h6>
-            <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Metrik Evaluasi:</strong>
-            <div class="row text-center mt-2">
+            <h6 class="text-primary">📊 Summary Hasil Evaluasi</h6>
+            <div class="row text-center">
                 <div class="col-md-4">
-                    <div class="calculation-step">
+                    <div class="calculation-step ${metricType === 'MAPE' ? 'bg-success text-white' : ''}">
                         <strong>MAPE</strong><br>
-                        <span class="text-muted fw-bold">${mape}%</span>
+                        <span class="fw-bold">${mape}%</span><br>
+                        <small>Mean Absolute Percentage Error</small>
+                        ${metricType === 'MAPE' ? '<div class="badge bg-light text-dark mt-1">TERBAIK</div>' : ''}
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="calculation-step">
+                    <div class="calculation-step ${metricType === 'MAE' ? 'bg-info text-white' : ''}">
                         <strong>MAE</strong><br>
-                        <span class="text-muted fw-bold">${mae}</span>
+                        <span class="fw-bold">${mae}</span><br>
+                        <small>Mean Absolute Error</small>
+                        ${metricType === 'MAE' ? '<div class="badge bg-light text-dark mt-1">TERBAIK</div>' : ''}
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="calculation-step">
+                    <div class="calculation-step ${metricType === 'MSE' ? 'bg-warning text-white' : ''}">
                         <strong>MSE</strong><br>
-                        <span class="text-warning fw-bold">${mse}</span>
-                        <span class="badge bg-success ms-1">Terbaik</span>
+                        <span class="fw-bold">${mse}</span><br>
+                        <small>Mean Squared Error</small>
+                        ${metricType === 'MSE' ? '<div class="badge bg-light text-dark mt-1">TERBAIK</div>' : ''}
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="calculation-card">
-            <strong>Rumus Exponential Smoothing:</strong>
-            <div class="formula">F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub></div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Nilai Variabel:</strong>
-            <div class="calculation-step">
-                - Alpha (α) = <strong>${alpha}</strong><br>
-                - Aktual Terakhir (A<sub>t</sub>) = <strong>${actualLast}</strong><br>
-                - Forecast Terakhir (F<sub>t</sub>) = <strong>${forecastLast}</strong>
-            </div>
-        </div>
-
-        <div class="calculation-card">
-            <strong>Langkah Perhitungan Forecast:</strong>
-            <div class="calculation-step">
-                1. F<sub>t+1</sub> = ${alpha} × ${actualLast} + (1 - ${alpha}) × ${forecastLast}<br>
-                2. F<sub>t+1</sub> = ${part1} + ${part2}<br>
-                3. F<sub>t+1</sub> = <strong>${forecastNext}</strong>
-            </div>
-        </div>
-
-        <div class="calculation-card">      
-            <strong>Rumus MSE (Mean Squared Error):</strong>
-            <div class="formula">MSE = (1/n) × Σ (A<sub>t</sub> - F<sub>t</sub>)²</div>
-            <small class="text-muted">Mengukur rata-rata error kuadrat, lebih sensitif terhadap outlier</small>
-        </div>
-
-        <div class="alert alert-warning mt-3">
-            <i class="bi bi-info-circle me-2"></i>
-            <strong>Alpha ${alpha} dipilih</strong> karena memberikan <strong>MSE terkecil (${mse})</strong> untuk ukuran ${ukuran}
+        <div class="alert alert-${badgeClass} mt-3">
+            <i class="bi bi-trophy-fill me-2"></i>
+            <strong>Alpha ${alpha} dipilih</strong> karena memberikan <strong>${metricType} terkecil</strong> untuk ukuran ${ukuran}
         </div>
 
         <div class="alert alert-success mt-3">
             <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Hasil Akhir:</strong> Forecast untuk tahun berikutnya = <strong>${forecastNext}</strong>
+            <strong>Hasil Akhir Forecast:</strong> Tahun berikutnya = <strong>${forecastNext}</strong>
+        </div>
+    `;
+
+    document.getElementById('calculationDetails').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('calculationModal')).show();
+}
+
+// Fungsi sederhana untuk fallback
+function showSimpleCalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse, metricType) {
+    const part1 = (alpha * actualLast).toFixed(2);
+    const part2 = ((1 - alpha) * forecastLast).toFixed(2);
+    
+    let badgeColor = 'success';
+    if (metricType === 'MAE') badgeColor = 'info';
+    if (metricType === 'MSE') badgeColor = 'warning';
+
+    const calculation = `
+        <div class="calculation-card">
+            <h6 class="text-primary">Detail Perhitungan - ${metricType} Terbaik</h6>
+            <p class="text-muted mb-3">Ukuran: <strong>${ukuran}</strong> | Alpha: <strong>${alpha}</strong></p>
+        </div>
+
+        <div class="calculation-card">
+            <strong>Perhitungan Forecast Tahun Berikutnya:</strong>
+            <div class="calculation-step">
+                F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub><br>
+                = ${alpha} × ${actualLast} + ${1-alpha} × ${forecastLast}<br>
+                = ${part1} + ${part2}<br>
+                = <strong>${forecastNext}</strong>
+            </div>
+        </div>
+
+        <div class="alert alert-${badgeColor} mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Alpha ${alpha} dipilih</strong> karena memberikan <strong>${metricType} terkecil</strong>
         </div>
     `;
 
