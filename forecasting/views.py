@@ -561,3 +561,4 @@ def api_forecast(request):
 
     except Exception as e:
         return JsonResponse({'error': f'Gagal memproses data: {str(e)}'}, status=400)
+    
