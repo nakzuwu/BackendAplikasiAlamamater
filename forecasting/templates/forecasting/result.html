@@ -336,39 +336,39 @@
                 </p>
             </div>
 
-            <!-- Metrics Summary -->
-            <div class="metric-container">
-                <div class="metric-card">
-                    <div class="metric-label">Total Ukuran</div>
-                    <div class="metric-value">{{ results|length }}</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">MAPE Terbaik</div>
-                    <div class="metric-value">{{ best_mape }}%</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">MAE Terbaik</div>
-                    <div class="metric-value">
-                        {% with best_mae=results|dictsort:"mae"|first %}
-                            {{ best_mae.mae }}
-                        {% endwith %}
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">MSE Terbaik</div>
-                    <div class="metric-value">
-                        {% with best_mse=results|dictsort:"mse"|first %}
-                            {{ best_mse.mse }}
-                        {% endwith %}
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Tahun Prediksi</div>
-                    <div class="metric-value">{{ results.0.tahun_next }}</div>
-                </div>
-            </div>
+<!-- Metrics Summary -->
+<div class="metric-container">
+    <div class="metric-card">
+        <div class="metric-label">Total Ukuran</div>
+        <div class="metric-value">{{ results|length }}</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">MAPE Terbaik</div>
+        <div class="metric-value">{{ best_mape|floatformat:1 }}%</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">MAE Terbaik</div>
+        <div class="metric-value">
+            {% with best_mae=results|dictsort:"mae"|first %}
+                {{ best_mae.mae|floatformat:0 }}
+            {% endwith %}
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">MSE Terbaik</div>
+        <div class="metric-value">
+            {% with best_mse=results|dictsort:"mse"|first %}
+                {{ best_mse.mse|floatformat:0 }}
+            {% endwith %}
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Tahun Prediksi</div>
+        <div class="metric-value">{{ results.0.tahun_next }}</div>
+    </div>
+</div>
 
-            <!-- 1. Table Hasil Prediksi menggunakan MAPE Terbaik -->
+<!-- 1. Table Hasil Prediksi menggunakan MAPE Terbaik -->
 <div class="card p-4 mb-5">
     <h4 class="text-secondary mb-4 text-center">
         <i class="bi bi-table header-icon"></i>Hasil Prediksi Berdasarkan MAPE Terbaik
@@ -400,17 +400,17 @@
                 {% for r in results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha_mape }}</span></td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha_mape|floatformat:1 }}</span></td>
                     <td>
-                        <span class="best-metric">{{ r.mape }}%</span>
+                        <span class="best-metric">{{ r.mape|floatformat:1 }}%</span>
                     </td>
-                    <td>{{ r.mae }}</td>
-                    <td>{{ r.mse }}</td>
+                    <td>{{ r.mae|floatformat:0 }}</td>
+                    <td>{{ r.mse|floatformat:0 }}</td>
                     <td>{{ r.tahun_last }}</td>
-                    <td>{{ r.actual_last }}</td>
+                    <td>{{ r.actual_last|floatformat:0 }}</td>
                     <td>{{ r.tahun_next }}</td>
                     <td class="bg-warning bg-opacity-25 fw-bold">
-                        {{ r.forecast_next }}
+                        {{ r.forecast_next|floatformat:0 }}
                     </td>
                     <td>
                         {% if r.forecast_trend == 'Naik' %}
@@ -422,23 +422,23 @@
                         {% endif %}
                     </td>
                     <td>
-    <button class="btn btn-sm btn-outline-info" 
-            onclick="showAllCalculations(
-                '{{ r.ukuran }}', 
-                {{ r.alpha_mape }}, 
-                {{ r.actual_last }}, 
-                {{ r.forecast_last }}, 
-                {{ r.forecast_next }}, 
-                {{ r.mape }},
-                {{ r.mae }},
-                {{ r.mse }},
-                'MAPE',
-                {{ r.yearly_calculations|safe }},
-                {{ r.yearly_metrics|safe }},
-                {{ r.all_alpha_data|safe }}
-            )">
-        <i class="bi bi-calculator me-1"></i>Lihat Detail
-    </button>
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="showAllCalculations(
+                                    '{{ r.ukuran }}', 
+                                    {{ r.alpha_mape|floatformat:1 }}, 
+                                    {{ r.actual_last|floatformat:0 }}, 
+                                    {{ r.forecast_last|floatformat:0 }}, 
+                                    {{ r.forecast_next|floatformat:0 }}, 
+                                    {{ r.mape|floatformat:1 }},
+                                    {{ r.mae|floatformat:0 }},
+                                    {{ r.mse|floatformat:0 }},
+                                    'MAPE',
+                                    {{ r.yearly_calculations|safe }},
+                                    {{ r.yearly_metrics|safe }},
+                                    {{ r.all_alpha_data|safe }}
+                                )">
+                            <i class="bi bi-calculator me-1"></i>Lihat Detail
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -479,17 +479,17 @@
                 {% for r in mae_best_results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha }}</span></td>
-                    <td>{{ r.mape }}%</td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:1 }}</span></td>
+                    <td>{{ r.mape|floatformat:1 }}%</td>
                     <td>
-                        <span class="best-metric">{{ r.mae }}</span>
+                        <span class="best-metric">{{ r.mae|floatformat:0 }}</span>
                     </td>
-                    <td>{{ r.mse }}</td>
+                    <td>{{ r.mse|floatformat:0 }}</td>
                     <td>{{ r.tahun_last }}</td>
-                    <td>{{ r.actual_last }}</td>
+                    <td>{{ r.actual_last|floatformat:0 }}</td>
                     <td>{{ r.tahun_next }}</td>
                     <td class="bg-info bg-opacity-25 fw-bold">
-                        {{ r.forecast_next }}
+                        {{ r.forecast_next|floatformat:0 }}
                     </td>
                     <td>
                         {% if r.forecast_trend == 'Naik' %}
@@ -500,25 +500,25 @@
                             <span class="badge bg-secondary"><i class="bi bi-dash"></i></span>
                         {% endif %}
                     </td>
-<td>
-    <button class="btn btn-sm btn-outline-info" 
-            onclick="showAllCalculations(
-                '{{ r.ukuran }}', 
-                {{ r.alpha_mae|default:r.alpha }}, 
-                {{ r.actual_last }}, 
-                {{ r.forecast_last|default:0 }}, 
-                {{ r.forecast_next }}, 
-                {{ r.mape }},
-                {{ r.mae }},
-                {{ r.mse }},
-                'MAE',
-                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
-                {{ r.yearly_metrics|default_if_none:"[]"|safe }},
-                {{ r.all_alpha_data|default_if_none:"[]"|safe }}
-            )">
-        <i class="bi bi-calculator me-1"></i>Lihat Detail
-    </button>
-</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="showAllCalculations(
+                                    '{{ r.ukuran }}', 
+                                    {{ r.alpha_mae|default:r.alpha|floatformat:1 }}, 
+                                    {{ r.actual_last|floatformat:0 }}, 
+                                    {{ r.forecast_last|default:0|floatformat:0 }}, 
+                                    {{ r.forecast_next|floatformat:0 }}, 
+                                    {{ r.mape|floatformat:1 }},
+                                    {{ r.mae|floatformat:0 }},
+                                    {{ r.mse|floatformat:0 }},
+                                    'MAE',
+                                    {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                                    {{ r.yearly_metrics|default_if_none:"[]"|safe }},
+                                    {{ r.all_alpha_data|default_if_none:"[]"|safe }}
+                                )">
+                            <i class="bi bi-calculator me-1"></i>Lihat Detail
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -558,17 +558,17 @@
                 {% for r in mse_best_results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha }}</span></td>
-                    <td>{{ r.mape }}%</td>
-                    <td>{{ r.mae }}</td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:1 }}</span></td>
+                    <td>{{ r.mape|floatformat:1 }}%</td>
+                    <td>{{ r.mae|floatformat:0 }}</td>
                     <td>
-                        <span class="best-metric">{{ r.mse }}</span>
+                        <span class="best-metric">{{ r.mse|floatformat:0 }}</span>
                     </td>
                     <td>{{ r.tahun_last }}</td>
-                    <td>{{ r.actual_last }}</td>
+                    <td>{{ r.actual_last|floatformat:0 }}</td>
                     <td>{{ r.tahun_next }}</td>
                     <td class="bg-warning bg-opacity-25 fw-bold">
-                        {{ r.forecast_next }}
+                        {{ r.forecast_next|floatformat:0 }}
                     </td>
                     <td>
                         {% if r.forecast_trend == 'Naik' %}
@@ -579,25 +579,25 @@
                             <span class="badge bg-secondary"><i class="bi bi-dash"></i></span>
                         {% endif %}
                     </td>
-<td>
-    <button class="btn btn-sm btn-outline-info" 
-            onclick="showAllCalculations(
-                '{{ r.ukuran }}', 
-                {{ r.alpha_mse|default:r.alpha }}, 
-                {{ r.actual_last }}, 
-                {{ r.forecast_last|default:0 }}, 
-                {{ r.forecast_next }}, 
-                {{ r.mape }},
-                {{ r.mae }},
-                {{ r.mse }},
-                'MSE',
-                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
-                {{ r.yearly_metrics|default_if_none:"[]"|safe }},
-                {{ r.all_alpha_data|default_if_none:"[]"|safe }}
-            )">
-        <i class="bi bi-calculator me-1"></i>Lihat Detail
-    </button>
-</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info" 
+                                onclick="showAllCalculations(
+                                    '{{ r.ukuran }}', 
+                                    {{ r.alpha_mse|default:r.alpha|floatformat:1 }}, 
+                                    {{ r.actual_last|floatformat:0 }}, 
+                                    {{ r.forecast_last|default:0|floatformat:0 }}, 
+                                    {{ r.forecast_next|floatformat:0 }}, 
+                                    {{ r.mape|floatformat:1 }},
+                                    {{ r.mae|floatformat:0 }},
+                                    {{ r.mse|floatformat:0 }},
+                                    'MSE',
+                                    {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                                    {{ r.yearly_metrics|default_if_none:"[]"|safe }},
+                                    {{ r.all_alpha_data|default_if_none:"[]"|safe }}
+                                )">
+                            <i class="bi bi-calculator me-1"></i>Lihat Detail
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -605,92 +605,92 @@
     </div>
 </div>
 
-            <!-- 4. Perbandingan Semua Alpha -->
-            <div class="card p-4 mb-5">
-                <h4 class="text-secondary mb-4 text-center">
-                    <i class="bi bi-bar-chart header-icon"></i>Perbandingan Semua Alpha 
-                </h4>
+<!-- 4. Perbandingan Semua Alpha -->
+<div class="card p-4 mb-5">
+    <h4 class="text-secondary mb-4 text-center">
+        <i class="bi bi-bar-chart header-icon"></i>Perbandingan Semua Alpha 
+    </h4>
 
-                <div class="alert alert-info mb-4">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi (9 alpha × {{ results|length }} ukuran)
-                </div>
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi (9 alpha × {{ results|length }} ukuran)
+    </div>
 
-                {% for ukuran, calculations in all_calculations.items %}
-                <div class="mb-4">
-                    <h5 class="text-primary mb-3">
-                        <i class="bi bi-graph-up"></i> Ukuran: {{ ukuran }}
-                        <span class="badge bg-secondary">9 Kombinasi Alpha</span>
-                    </h5>
+    {% for ukuran, calculations in all_calculations.items %}
+    <div class="mb-4">
+        <h5 class="text-primary mb-3">
+            <i class="bi bi-graph-up"></i> Ukuran: {{ ukuran }}
+            <span class="badge bg-secondary">9 Kombinasi Alpha</span>
+        </h5>
 
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr class="table-dark">
-                                    <th>Alpha (α)</th>
-                                    <th>MAPE (%)</th>
-                                    <th>MAE</th>
-                                    <th>MSE</th>
-                                    <th>Keterangan</th>
-                                    <th>Forecast (F<sub>t+1</sub>)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for calc in calculations %}
-                                <tr>
-                                    <td><strong>{{ calc.alpha }}</strong></td>
-                                    <td>
-                                        {{ calc.mape }}%
-                                        {% with best_mape=calculations|dictsort:"mape"|first %}
-                                            {% if calc.mape == best_mape.mape %}
-                                                <span class="badge bg-success">Terbaik</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td>
-                                        {{ calc.mae }}
-                                        {% with best_mae=calculations|dictsort:"mae"|first %}
-                                            {% if calc.mae == best_mae.mae %}
-                                                <span class="badge bg-info">Terbaik</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td>
-                                        {{ calc.mse }}
-                                        {% with best_mse=calculations|dictsort:"mse"|first %}
-                                            {% if calc.mse == best_mse.mse %}
-                                                <span class="badge bg-warning">Terbaik</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td>
-                                        {% with best_mape=calculations|dictsort:"mape"|first %}
-                                            {% if calc.mape == best_mape.mape %}
-                                                <span class="badge bg-success">MAPE Terbaik</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                        {% with best_mae=calculations|dictsort:"mae"|first %}
-                                            {% if calc.mae == best_mae.mae %}
-                                                <span class="badge bg-info">MAE Terbaik</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                        {% with best_mse=calculations|dictsort:"mse"|first %}
-                                            {% if calc.mse == best_mse.mse %}
-                                                <span class="badge bg-warning">MSE Terbaik</span>
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                    <td class="fw-bold">
-                                        {{ calc.forecast_next }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr class="table-dark">
+                        <th>Alpha (α)</th>
+                        <th>MAPE (%)</th>
+                        <th>MAE</th>
+                        <th>MSE</th>
+                        <th>Keterangan</th>
+                        <th>Forecast (F<sub>t+1</sub>)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for calc in calculations %}
+                    <tr>
+                        <td><strong>{{ calc.alpha|floatformat:2 }}</strong></td>
+                        <td>
+                            {{ calc.mape|floatformat:1 }}%
+                            {% with best_mape=calculations|dictsort:"mape"|first %}
+                                {% if calc.mape == best_mape.mape %}
+                                    <span class="badge bg-success">Terbaik</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {{ calc.mae|floatformat:0 }}
+                            {% with best_mae=calculations|dictsort:"mae"|first %}
+                                {% if calc.mae == best_mae.mae %}
+                                    <span class="badge bg-info">Terbaik</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {{ calc.mse|floatformat:0 }}
+                            {% with best_mse=calculations|dictsort:"mse"|first %}
+                                {% if calc.mse == best_mse.mse %}
+                                    <span class="badge bg-warning">Terbaik</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% with best_mape=calculations|dictsort:"mape"|first %}
+                                {% if calc.mape == best_mape.mape %}
+                                    <span class="badge bg-success">MAPE Terbaik</span>
+                                {% endif %}
+                            {% endwith %}
+                            {% with best_mae=calculations|dictsort:"mae"|first %}
+                                {% if calc.mae == best_mae.mae %}
+                                    <span class="badge bg-info">MAE Terbaik</span>
+                                {% endif %}
+                            {% endwith %}
+                            {% with best_mse=calculations|dictsort:"mse"|first %}
+                                {% if calc.mse == best_mse.mse %}
+                                    <span class="badge bg-warning">MSE Terbaik</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="fw-bold">
+                            {{ calc.forecast_next|floatformat:0 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 
             <!-- 5. Semua Rumus Perhitungan -->
             <div class="card p-4 mb-5">
@@ -765,13 +765,14 @@
                 </h4>
                 <canvas id="multiChart"></canvas>
             </div>
-
-            <div class="card p-4 mb-5">
-                <h4 class="text-secondary text-center mb-4">
-                    <i class="bi bi-bar-chart-fill header-icon"></i>Grafik Perbandingan per Tahun
-                </h4>
-                <canvas id="yearlyChart"></canvas>
-            </div>
+<div class="card p-4 mb-5">
+    <h4 class="text-secondary text-center mb-4">
+        <i class="bi bi-bar-chart-fill header-icon"></i>Grafik Perbandingan per Tahun (%)
+    </h4>
+    <div style="height: 400px; position: relative;"> <!-- Container dengan tinggi tetap -->
+        <canvas id="yearlyChart"></canvas>
+    </div>
+</div>
             <!-- Tambahkan tombol ini di bagian sebelum tombol "Kembali ke Halaman Awal" -->
             <!-- Ganti bagian tombol di akhir halaman dengan ini -->
             <div class="text-center">
@@ -815,186 +816,269 @@
         <!-- Chart.js script -->
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                try {
-                    const chartData = {{ chart_data|safe }};
-                    const labels = {{ years|safe }};
-                    const colors = [
-                        '#58a6ff', '#3fb950', '#f85149', '#d29922', '#db61a2', '#8b949e'
-                    ];
+    try {
+        const chartData = {{ chart_data|safe }};
+        const labels = {{ years|safe }};
+        const colors = [
+            '#58a6ff', '#3fb950', '#f85149', '#d29922', '#db61a2', '#8b949e'
+        ];
 
-                    // === Grafik 1: Tren per ukuran (Line Chart)
-                    const ctxLine = document.getElementById('multiChart').getContext('2d');
-                    const datasets = [];
+        // === Grafik 1: Tren per ukuran (Line Chart)
+        const ctxLine = document.getElementById('multiChart').getContext('2d');
+        const datasets = [];
 
-                    let i = 0;
-                    for (const [key, values] of Object.entries(chartData)) {
-                        if (Array.isArray(values) && values.length > 0) {
-                            datasets.push({
-                                label: key,
-                                data: values,
-                                borderColor: colors[i % colors.length],
-                                backgroundColor: colors[i % colors.length] + '20',
-                                borderWidth: 3,
-                                tension: 0.3,
-                                fill: false,
-                                pointRadius: 4,
-                                pointHoverRadius: 8,
-                                pointBackgroundColor: colors[i % colors.length],
-                            });
+        let i = 0;
+        for (const [key, values] of Object.entries(chartData)) {
+            if (Array.isArray(values) && values.length > 0) {
+                datasets.push({
+                    label: key,
+                    data: values,
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length] + '20',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: false,
+                    pointRadius: 4,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: colors[i % colors.length],
+                });
+            }
+            i++;
+        }
+
+        new Chart(ctxLine, {
+            type: 'line',
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Trend Forecasting Semua Ukuran',
+                        color: '#f0f6fc',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#8b949e',
+                            font: { size: 12 }
                         }
-                        i++;
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#21262d',
+                        titleColor: '#f0f6fc',
+                        bodyColor: '#f0f6fc',
+                        borderColor: '#30363d',
+                        borderWidth: 1
                     }
-
-                    new Chart(ctxLine, {
-                        type: 'line',
-                        data: { labels: labels, datasets: datasets },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Trend Forecasting Semua Ukuran',
-                                    color: '#f0f6fc',
-                                    font: { size: 16 }
-                                },
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: '#8b949e',
-                                        font: { size: 12 }
-                                    }
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                    backgroundColor: '#21262d',
-                                    titleColor: '#f0f6fc',
-                                    bodyColor: '#f0f6fc',
-                                    borderColor: '#30363d',
-                                    borderWidth: 1
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Tahun',
-                                        color: '#8b949e'
-                                    },
-                                    grid: { color: '#30363d' },
-                                    ticks: { color: '#8b949e' }
-                                },
-                                y: {
-                                    beginAtZero: false,
-                                    title: {
-                                        display: true,
-                                        text: 'Jumlah Permintaan',
-                                        color: '#8b949e'
-                                    },
-                                    grid: { color: '#30363d' },
-                                    ticks: { color: '#8b949e' }
-                                }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tahun',
+                            color: '#8b949e'
+                        },
+                        grid: { color: '#30363d' },
+                        ticks: { color: '#8b949e' }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Jumlah Permintaan',
+                            color: '#8b949e'
+                        },
+                        grid: { color: '#30363d' },
+                        ticks: { 
+                            color: '#8b949e',
+                            callback: function(value) {
+                                return value.toLocaleString('id-ID');
                             }
                         }
+                    }
+                }
+            }
+        });
+
+        // === Grafik 2: Stacked Horizontal Percentage Bar Chart ===
+        const ctxBar = document.getElementById('yearlyChart').getContext('2d');
+
+        // Hitung total per tahun
+        const yearlyTotals = labels.map((year, index) => {
+            return Object.values(chartData).reduce((sum, dataset) => {
+                return sum + (dataset[index] || 0);
+            }, 0);
+        });
+
+        // Konversi ke persentase
+        const percentageData = {};
+        Object.keys(chartData).forEach(key => {
+            percentageData[key] = chartData[key].map((value, index) => {
+                const total = yearlyTotals[index];
+                return total > 0 ? (value / total) * 100 : 0;
+            });
+        });
+
+        // Dataset STACKED
+        const barDatasets = Object.keys(percentageData).map((key, idx) => ({
+            label: key,
+            data: percentageData[key],
+            backgroundColor: colors[idx % colors.length],
+            borderColor: '#ffffff',
+            borderWidth: 1,
+            barThickness: 26,
+            borderRadius: 6
+        }));
+
+        // Custom plugin untuk label di dalam bar
+        const insideLabelsPlugin = {
+            id: 'insideLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+
+                chart.data.datasets.forEach((dataset, datasetIndex) => {
+                    const meta = chart.getDatasetMeta(datasetIndex);
+
+                    meta.data.forEach((bar, index) => {
+                        const value = dataset.data[index];
+                        // Hanya tampilkan jika persentase cukup besar (>= 5%)
+                        if (!value || value < 5) return;
+
+                        // Hitung posisi tengah segmen stacked bar
+                        let centerX = bar.x;
+                        if (datasetIndex > 0) {
+                            // Untuk dataset setelah pertama, hitung posisi berdasarkan segmen sebelumnya
+                            const prevMeta = chart.getDatasetMeta(datasetIndex - 1);
+                            const prevBar = prevMeta.data[index];
+                            centerX = (prevBar.x + bar.x) / 2;
+                        } else {
+                            // Untuk dataset pertama
+                            centerX = bar.x / 2;
+                        }
+
+                        const centerY = bar.y;
+                        const text = value.toFixed(0) + '%';
+
+                        ctx.font = 'bold 11px Arial';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        // Background untuk readability
+                        const padding = 4;
+                        const textWidth = ctx.measureText(text).width;
+
+                        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                        ctx.fillRect(
+                            centerX - textWidth / 2 - padding,
+                            centerY - 8,
+                            textWidth + padding * 2,
+                            16
+                        );
+                        
+                        // Teks persentase
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(text, centerX, centerY);
                     });
+                });
+                ctx.restore();
+            }
+        };
 
-// === Grafik 2: Perbandingan per tahun (Bar Chart dengan Persentase)
-const ctxBar = document.getElementById('yearlyChart').getContext('2d');
-
-// Dataset untuk setiap ukuran (stacked dengan persentase)
-const barDatasets = Object.keys(chartData).map((key, idx) => ({
-    label: key,
-    data: chartData[key],
-    backgroundColor: colors[idx % colors.length] + 'CC',
-    borderColor: colors[idx % colors.length],
-    borderWidth: 1
-}));
-
-// Hitung total per tahun untuk persentase
-const yearlyTotals = labels.map((year, index) => {
-    return Object.values(chartData).reduce((sum, dataset) => {
-        return sum + (dataset[index] || 0);
-    }, 0);
-});
-
-new Chart(ctxBar, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: barDatasets
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            title: {
-                display: true,
-                text: 'Distribusi Permintaan per Tahun',
-                color: '#f0f6fc',
-                font: { size: 16 }
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: barDatasets
             },
-            legend: {
-                position: 'bottom',
-                labels: {
-                    color: '#8b949e',
-                    font: { size: 12 }
-                }
-            },
-            tooltip: {
-                mode: 'index',
-                intersect: false,
-                backgroundColor: '#21262d',
-                titleColor: '#f0f6fc',
-                bodyColor: '#f0f6fc',
-                borderColor: '#30363d',
-                borderWidth: 1,
-                callbacks: {
-                    label: function(context) {
-                        const label = context.dataset.label || '';
-                        const value = context.raw;
-                        const yearIndex = context.dataIndex;
-                        const total = yearlyTotals[yearIndex];
-                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                        return `${label}: ${value} unit (${percentage}%)`;
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Distribusi Permintaan per Tahun (%)',
+                        font: { size: 16, weight: 'bold' },
+                        color: '#f0f6fc'
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 10,
+                            font: { size: 12 },
+                            color: '#8b949e'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#21262d',
+                        titleColor: '#f0f6fc',
+                        bodyColor: '#f0f6fc',
+                        borderColor: '#30363d',
+                        borderWidth: 1,
+                        callbacks: {
+                            label(context) {
+                                const label = context.dataset.label;
+                                const percent = context.raw.toFixed(1);
+                                const yearIndex = context.dataIndex;
+                                const original = chartData[label][yearIndex] || 0;
+                                return `${label}: ${percent}% (${original.toLocaleString('id-ID')})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        max: 100,
+                        ticks: {
+                            callback: value => value + '%',
+                            color: '#8b949e'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Persentase',
+                            color: '#8b949e'
+                        },
+                        grid: { 
+                            color: '#30363d',
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Tahun',
+                            color: '#8b949e'
+                        },
+                        grid: { 
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: { 
+                            color: '#8b949e',
+                            padding: 10
+                        }
                     }
                 }
-            }
-        },
-        scales: {
-            x: {
-                stacked: true,
-                title: {
-                    display: true,
-                    text: 'Tahun',
-                    color: '#8b949e'
-                },
-                grid: { color: '#30363d' },
-                ticks: { color: '#8b949e' }
             },
-            y: {
-                stacked: true,
-                beginAtZero: true,
-                title: {
-                    display: true,
-                    text: 'Jumlah Permintaan (unit)',
-                    color: '#8b949e'
-                },
-                grid: { color: '#30363d' },
-                ticks: { 
-                    color: '#8b949e',
-                    callback: function(value) {
-                        return value.toLocaleString('id-ID');
-                    }
-                }
-            }
-        }
+            plugins: [insideLabelsPlugin] // Masukkan plugin di sini
+        });
+
+    } catch (err) {
+        console.error("Chart error:", err);
     }
 });
-                } catch (err) {
-                    console.error("Chart error:", err);
-                }
-            });
 
             // Theme toggle functionality
             document.getElementById('themeToggle').addEventListener('click', function() {
@@ -1072,12 +1156,34 @@ function safeShowCalculations(ukuran, alpha, actualLast, forecastLast, forecastN
     }
 }
 
-// Tambahkan fungsi pembulatan di awal
-function formatNumber(num, decimals = 2) {
-    if (num === undefined || num === null) return '0.00';
-    return parseFloat(num).toFixed(decimals);
+// Tambahkan fungsi helper untuk pembulatan
+function formatNumber(num, decimals = 0) {
+    if (num === undefined || num === null || isNaN(num)) return '0';
+    const multiplier = Math.pow(10, decimals);
+    const rounded = Math.round(num * multiplier) / multiplier;
+    
+    // Untuk bilangan bulat (decimals=0), hapus desimal
+    if (decimals === 0) {
+        return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    
+    // Untuk desimal, format dengan titik sebagai pemisah ribuan
+    const parts = rounded.toString().split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return parts.join(',');
 }
 
+function formatPercentage(num, decimals = 1) {
+    if (num === undefined || num === null || isNaN(num)) return '0,0%';
+    const multiplier = Math.pow(10, decimals);
+    const rounded = Math.round(num * multiplier) / multiplier;
+    return rounded.toString().replace('.', ',') + '%';
+}
+
+function formatAlpha(num) {
+    if (num === undefined || num === null || isNaN(num)) return '0,00';
+    return Number(num).toFixed(2).replace('.', ',');
+}
 function roundNumber(num, decimals = 2) {
     if (num === undefined || num === null) return 0;
     return parseFloat(num.toFixed(decimals));
@@ -1088,7 +1194,7 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
                             yearlyCalculations, yearlyMetrics, allAlphasData) {
     
     // Validasi dan pembulatan parameter
-    alpha = roundNumber(alpha || 0, 1);
+    alpha = roundNumber(alpha || 0, 2);
     actualLast = roundNumber(actualLast || 0);
     forecastLast = roundNumber(forecastLast || 0);
     forecastNext = roundNumber(forecastNext || 0);
@@ -1100,15 +1206,14 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
     yearlyMetrics = yearlyMetrics || [];
     allAlphasData = allAlphasData || [];
     
-    // Format alpha untuk display (0.9 bukan 0.90)
-    const alphaDisplay = alpha % 1 === 0 ? alpha.toFixed(0) : alpha.toFixed(1);
+    // Format alpha untuk display (2 desimal)
+    const alphaDisplay = alpha.toFixed(2);
     
     // Inline styles untuk tema terang
     const cardStyle = "background: #f8f9fa; border-left: 4px solid #58a6ff; padding: 15px; margin: 10px 0; border-radius: 8px; color: #212529;";
     const stepStyle = "background: #e9ecef; padding: 10px; border-radius: 6px; margin: 5px 0; border-left: 3px solid #3fb950; color: #212529;";
     const formulaStyle = "font-family: 'Courier New', monospace; background: #ffffff; padding: 12px; border-radius: 6px; margin: 8px 0; border: 1px solid #dee2e6; color: #212529; font-weight: 500;";
     const tableHeaderStyle = "background-color: #198754; color: white;";
-    const tableWarningStyle = "background-color: #fff3cd !important;";
     const textSuccessStyle = "color: #198754 !important;";
     const textWarningStyle = "color: #ffc107 !important;";
     const textInfoStyle = "color: #0dcaf0 !important;";
@@ -1126,19 +1231,24 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         </div>
     `;
 
-    // 1. TABEL SEMUA ALPHA (0.1 - 0.9)
+    // 1. TABEL SEMUA ALPHA (0.01 - 0.99) - DARI TERBESAR KE TERKECIL
     if (allAlphasData && allAlphasData.length > 0) {
+        // Hitung total kombinasi alpha
+        const totalAlphas = allAlphasData.length;
+        const alphaCountInfo = totalAlphas >= 99 ? "99 kombinasi alpha" : `${totalAlphas} kombinasi alpha`;
+        
         html += `
             <div style="${cardStyle}">
-                <h6 style="color: #198754;">📈 Perbandingan 9 Alpha (0.1 - 0.9)</h6>
+                <h6 style="color: #198754;">📈 Perbandingan Alpha</h6>
                 <div class="alert alert-info" style="background-color: #cff4fc; border-color: #b6effb; color: #055160;">
                     <i class="bi bi-info-circle me-2"></i>
-                    Total <strong>9 kombinasi alpha</strong> diuji untuk mendapatkan nilai optimal
+                    Total <strong>${alphaCountInfo}</strong> diuji untuk mendapatkan nilai optimal (0.01 - 0.99)
                 </div>
                 <div class="table-responsive mt-2">
                     <table class="table table-sm table-bordered">
                         <thead style="${tableHeaderStyle}">
                             <tr>
+                                <th>No</th>
                                 <th>Alpha (α)</th>
                                 <th>MAPE (%)</th>
                                 <th>MAE</th>
@@ -1150,22 +1260,23 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
                         <tbody>
         `;
         
-        // Urutkan berdasarkan metric yang dipilih
-        const sortedAlphas = [...allAlphasData].sort((a, b) => {
-            if (metricType === 'MAPE') return a.mape - b.mape;
-            if (metricType === 'MAE') return a.mae - b.mae;
-            return a.mse - b.mse;
-        });
+        // Urutkan alpha dari TERBESAR ke TERKECIL (0.99 -> 0.01)
+        const sortedAlphas = [...allAlphasData].sort((a, b) => b.alpha - a.alpha);
         
-        sortedAlphas.forEach(calc => {
+        // Batasi tampilan jika terlalu banyak (misal max 15 baris)
+        const displayLimit = 999;
+        const displayAlphas = sortedAlphas.slice(0, displayLimit);
+        
+        displayAlphas.forEach((calc, index) => {
             const isBest = Math.abs(calc.alpha - alpha) < 0.001;
-            const alphaVal = roundNumber(calc.alpha || 0, 1);
-            const alphaDisplay = alphaVal % 1 === 0 ? alphaVal.toFixed(0) : alphaVal.toFixed(1);
+            const alphaVal = roundNumber(calc.alpha || 0, 2);
+            const alphaDisplay = alphaVal.toFixed(2);
             const mapeValue = roundNumber(calc.mape || 0);
             const mapeClass = mapeValue < 10 ? 'text-success' : mapeValue < 20 ? 'text-warning' : 'text-danger';
             
             html += `
                 <tr ${isBest ? 'style="background-color: #fff3cd !important;"' : ''}>
+                    <td>${index + 1}</td>
                     <td><strong>${alphaDisplay}</strong></td>
                     <td class="${mapeClass}">${formatNumber(mapeValue)}%</td>
                     <td>${formatNumber(calc.mae || 0)}</td>
@@ -1178,11 +1289,23 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
             `;
         });
         
+        // Jika ada alpha yang tidak ditampilkan, tambahkan info
+        if (sortedAlphas.length > displayLimit) {
+            const remainingCount = sortedAlphas.length - displayLimit;
+            html += `
+                <tr>
+                    <td colspan="7" class="text-center" style="background-color: #f8f9fa;">
+                        <small class="text-muted">... dan ${remainingCount} alpha lainnya</small>
+                    </td>
+                </tr>
+            `;
+        }
+        
         html += `
                         </tbody>
                     </table>
                 </div>
-                <small style="color: #6c757d;">* Menampilkan semua 9 alpha dari 0.1 sampai 0.9</small>
+                <small style="color: #6c757d;">* Menampilkan ${displayLimit} alpha pertama dari terbesar ke terkecil (0.99 → 0.01)</small>
             </div>
         `;
     }
@@ -1214,12 +1337,31 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         `;
         
         yearlyCalculations.forEach(calc => {
-            // Format calculation string agar angka dibulatkan
+            // Format calculation string agar angka dibulatkan 2 desimal
             let calculationDisplay = calc.calculation || '';
             if (calculationDisplay) {
-                // Ganti angka desimal panjang dengan yang dibulatkan
+                // Ganti angka desimal panjang dengan yang dibulatkan 2 desimal
                 calculationDisplay = calculationDisplay
-                    .replace(/(\d+\.\d{5,})/g, (match) => formatNumber(parseFloat(match)))
+                    .replace(/(\d+\.\d{5,})/g, (match) => {
+                        const num = parseFloat(match);
+                        return num.toFixed(2);
+                    })
+                    .replace(/(\d+\.\d{3,})/g, (match) => {
+                        const num = parseFloat(match);
+                        return num.toFixed(2);
+                    });
+                
+                // Perbaiki angka floating point JavaScript untuk alpha 2 desimal
+                calculationDisplay = calculationDisplay
+                    .replace(/0\.00999999999999998/g, '0.01')
+                    .replace(/0\.01999999999999998/g, '0.02')
+                    .replace(/0\.02999999999999998/g, '0.03')
+                    .replace(/0\.03999999999999998/g, '0.04')
+                    .replace(/0\.04999999999999998/g, '0.05')
+                    .replace(/0\.05999999999999998/g, '0.06')
+                    .replace(/0\.06999999999999998/g, '0.07')
+                    .replace(/0\.07999999999999998/g, '0.08')
+                    .replace(/0\.08999999999999998/g, '0.09')
                     .replace(/0\.09999999999999998/g, '0.10')
                     .replace(/0\.19999999999999996/g, '0.20')
                     .replace(/0\.29999999999999993/g, '0.30')
@@ -1332,12 +1474,12 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
     }
 
     // 4. PERHITUNGAN FORECAST TAHUN BERIKUTNYA
-    // Hitung dengan pembulatan
-    const roundedAlpha = roundNumber(alpha, 1);
-    const roundedOneMinusAlpha = roundNumber(1 - alpha, 1);
-    const part1 = roundNumber(alpha * actualLast);
-    const part2 = roundNumber((1 - alpha) * forecastLast);
-    const calculatedForecast = roundNumber(part1 + part2);
+    // Hitung dengan pembulatan 2 desimal
+    const roundedAlpha = roundNumber(alpha, 2);
+    const roundedOneMinusAlpha = roundNumber(1 - alpha, 2);
+    const part1 = roundNumber(alpha * actualLast, 2);
+    const part2 = roundNumber((1 - alpha) * forecastLast, 2);
+    const calculatedForecast = roundNumber(part1 + part2, 2);
     
     html += `
         <div style="${cardStyle}">
@@ -1387,14 +1529,17 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         badgeStyle = 'background-color: #fff3cd; border-color: #ffecb5; color: #664d03;';
         metricName = 'MSE (Mean Squared Error)';
     }
-
+    
+    // Hitung total alpha yang diuji
+    const totalAlphaTested = allAlphasData.length;
+    
     html += `
         <div class="alert alert-${badgeClass} mt-3" style="${badgeStyle}">
             <i class="bi bi-trophy-fill me-2"></i>
             <strong>Kesimpulan:</strong><br>
             Alpha <strong>${alphaDisplay}</strong> dipilih karena memberikan nilai 
             <strong>${metricType} terkecil</strong> (${metricName}) untuk ukuran ${ukuran}.<br>
-            <small>Dari 9 kombinasi alpha yang diuji (0.1, 0.2, ..., 0.9)</small>
+            <small>Dari ${totalAlphaTested} kombinasi alpha yang diuji (${allAlphasData.length >= 99 ? '0.01 - 0.99' : 'berbagai nilai alpha'})</small>
         </div>
 
         <div class="alert alert-success mt-3" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
@@ -1415,7 +1560,6 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
     
     new bootstrap.Modal(modalElement).show();
 }
-// Fungsi sederhana untuk fallback
 function showSimpleCalculation(ukuran, alpha, actualLast, forecastLast, forecastNext, mape, mae, mse, metricType) {
     const part1 = (alpha * actualLast).toFixed(2);
     const part2 = ((1 - alpha) * forecastLast).toFixed(2);

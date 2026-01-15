@@ -426,8 +426,7 @@ def process_single_size_forecast(ukuran_name, data, years):
     calculations = []
     best_results = initialize_best_results()
     
-    # Gunakan alpha 0.1 sampai 0.9 dengan step 0.1
-    alphas = [i/10 for i in range(1, 10)]
+    alphas = [i / 100 for i in range(1, 100)]
     
     for alpha in alphas:
         calculation = calculate_forecast_with_alpha(data, alpha, years)
@@ -488,7 +487,7 @@ def process_forecasting(ukuran_cols, df, tahun_col, years):
 def get_all_alpha_calculations_for_ukuran(ukuran_name, data, years):
     """Mendapatkan semua perhitungan untuk semua alpha (0.1-0.9)"""
     all_alpha_data = []
-    alphas = [i/10 for i in range(1, 10)]  # 0.1 sampai 0.9
+    alphas = [i / 100 for i in range(1, 100)]
     
     for alpha in alphas:
         calculation = calculate_forecast_with_alpha(data, alpha, years)
