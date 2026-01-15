@@ -299,41 +299,103 @@
         </div>
       </div>
 
+      <!-- Ganti bagian input manual dengan ini -->
       <div class="card p-4 mb-4">
-        <h4 class="text-secondary mb-4">
-          <i class="bi bi-keyboard header-icon"></i>Input Manual
-        </h4>
-        <form
-          method="POST"
-          enctype="multipart/form-data"
-          action="{% url 'forecast' %}"
-        >
-          {% csrf_token %}
-          <div class="mb-4">
-            <label for="data" class="form-label"
-              >Masukkan Data Permintaan (Format: Tahun,S,M,L,XL,XXL)</label
-            >
-            <div class="input-icon">
-              <i class="bi bi-list-ol"></i>
-              <textarea
-                class="form-control"
-                name="data"
-                rows="4"
-                placeholder="Contoh: 2019,85,120,150,90,55;2020,90,125,155,95,60"
-              ></textarea>
-            </div>
-            <div class="form-text mt-2">
-              <i class="bi bi-info-circle me-1"></i>
-              Pisahkan setiap tahun dengan titik koma (;), dan nilai dengan koma
-              (,)
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary w-100 py-3">
-            <i class="bi bi-calculator me-2"></i>Proses Manual
-          </button>
-        </form>
+          <h4 class="text-secondary mb-4">
+              <i class="bi bi-keyboard header-icon"></i>Input Manual
+          </h4>
+          <form method="POST" enctype="multipart/form-data" action="{% url 'forecast' %}">
+              {% csrf_token %}
+              <div class="mb-4">
+                  <label for="data" class="form-label">
+                      Masukkan Data Permintaan (Format: Baris pertama header ukuran, baris berikutnya data per tahun)
+                  </label>
+                  <div class="input-icon">
+                      <i class="bi bi-list-ol"></i>
+                      <textarea
+                          class="form-control"
+                          name="data"
+                          id="dataInput"
+                          rows="6"
+                          placeholder="Contoh:
+      S,M,L,XL,XXL
+      2019,85,120,150,90,55
+      2020,90,125,155,95,60
+      2021,95,130,160,100,65
+
+      Baris pertama: nama ukuran dipisahkan koma
+      Baris berikutnya: tahun, kemudian nilai untuk setiap ukuran"
+                      ></textarea>
+                  </div>
+                  <div class="form-text mt-2">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Format: Baris 1 = header ukuran, Baris 2+ = tahun,value1,value2,...
+                  </div>
+                  
+                  <!-- Preview table -->
+                  <div id="previewTable" class="mt-3" style="display: none;">
+                      <h6 class="text-primary">Preview Data:</h6>
+                      <div class="table-responsive">
+                          <table class="table table-sm table-bordered" id="dataPreview">
+                              <thead>
+                                  <tr id="previewHeader"></tr>
+                              </thead>
+                              <tbody id="previewBody"></tbody>
+                          </table>
+                      </div>
+                  </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-3">
+                  <i class="bi bi-calculator me-2"></i>Proses Manual
+              </button>
+          </form>
       </div>
 
+      <script>
+      // Preview input data
+      document.getElementById('dataInput').addEventListener('input', function(e) {
+          const input = e.target.value.trim();
+          const previewTable = document.getElementById('previewTable');
+          const previewHeader = document.getElementById('previewHeader');
+          const previewBody = document.getElementById('previewBody');
+          
+          if (!input) {
+              previewTable.style.display = 'none';
+              return;
+          }
+          
+          const lines = input.split('\n').filter(line => line.trim());
+          
+          if (lines.length < 2) {
+              previewTable.style.display = 'none';
+              return;
+          }
+          
+          // Parse headers (baris pertama)
+          const headers = lines[0].split(',').map(h => h.trim());
+          let headerHTML = '<th>Tahun</th>';
+          headers.forEach(header => {
+              headerHTML += `<th>${header}</th>`;
+          });
+          previewHeader.innerHTML = headerHTML;
+          
+          // Parse data rows
+          let bodyHTML = '';
+          for (let i = 1; i < lines.length; i++) {
+              const cells = lines[i].split(',').map(c => c.trim());
+              if (cells.length === headers.length + 1) { // +1 untuk tahun
+                  bodyHTML += '<tr>';
+                  cells.forEach((cell, index) => {
+                      bodyHTML += `<td>${cell}</td>`;
+                  });
+                  bodyHTML += '</tr>';
+              }
+          }
+          
+          previewBody.innerHTML = bodyHTML;
+          previewTable.style.display = 'block';
+      });
+      </script>
       <div class="card p-4">
         <h4 class="text-secondary mb-4">
           <i class="bi bi-cloud-upload header-icon"></i>Upload File CSV
