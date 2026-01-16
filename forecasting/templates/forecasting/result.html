@@ -400,7 +400,7 @@
                 {% for r in results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha_mape|floatformat:1 }}</span></td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha_mape|floatformat:2 }}</span></td>
                     <td>
                         <span class="best-metric">{{ r.mape|floatformat:1 }}%</span>
                     </td>
@@ -479,7 +479,7 @@
                 {% for r in mae_best_results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:1 }}</span></td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:2 }}</span></td>
                     <td>{{ r.mape|floatformat:1 }}%</td>
                     <td>
                         <span class="best-metric">{{ r.mae|floatformat:0 }}</span>
@@ -558,8 +558,8 @@
                 {% for r in mse_best_results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:1 }}</span></td>
-                    <td>{{ r.mape|floatformat:1 }}%</td>
+                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:2 }}</span></td>
+                    <td>{{ r.mape|floatformat:2 }}%</td>
                     <td>{{ r.mae|floatformat:0 }}</td>
                     <td>
                         <span class="best-metric">{{ r.mse|floatformat:0 }}</span>
@@ -567,7 +567,7 @@
                     <td>{{ r.tahun_last }}</td>
                     <td>{{ r.actual_last|floatformat:0 }}</td>
                     <td>{{ r.tahun_next }}</td>
-                    <td class="bg-warning bg-opacity-25 fw-bold">
+                    <td class="bg-warning bg-opacity-25 fw-bold">`
                         {{ r.forecast_next|floatformat:0 }}
                     </td>
                     <td>
