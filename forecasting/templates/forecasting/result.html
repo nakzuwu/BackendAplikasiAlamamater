@@ -421,7 +421,15 @@
                 {% for r in results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha_mape|floatformat:2 }}</span></td>
+                    <td>
+    <span class="badge bg-primary method-badge">
+        {% if alpha_step == 0.01 %}
+            {{ r.alpha_mape|floatformat:2 }}
+        {% else %}
+            {{ r.alpha_mape|floatformat:1 }}
+        {% endif %}
+    </span>
+</td>
                     <td>
                         <span class="best-metric">{{ r.mape|floatformat:1 }}%</span>
                     </td>
@@ -456,7 +464,8 @@
                                     'MAPE',
                                     {{ r.yearly_calculations|safe }},
                                     {{ r.yearly_metrics|safe }},
-                                    {{ r.all_alpha_data|safe }}
+                                    {{ r.all_alpha_data|safe }},
+                                    {{ alpha_step }}  <!-- Tambahkan alpha_step -->
                                 )">
                             <i class="bi bi-calculator me-1"></i>Lihat Detail
                         </button>
@@ -500,7 +509,15 @@
                 {% for r in mae_best_results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:2 }}</span></td>
+                    <td>
+    <span class="badge bg-primary method-badge">
+        {% if alpha_step == 0.01 %}
+            {{ r.alpha|floatformat:2 }}
+        {% else %}
+            {{ r.alpha|floatformat:1 }}
+        {% endif %}
+    </span>
+</td>
                     <td>{{ r.mape|floatformat:1 }}%</td>
                     <td>
                         <span class="best-metric">{{ r.mae|floatformat:0 }}</span>
@@ -522,23 +539,24 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info" 
-                                onclick="showAllCalculations(
-                                    '{{ r.ukuran }}', 
-                                    {{ r.alpha_mae|default:r.alpha|floatformat:1 }}, 
-                                    {{ r.actual_last|floatformat:0 }}, 
-                                    {{ r.forecast_last|default:0|floatformat:0 }}, 
-                                    {{ r.forecast_next|floatformat:0 }}, 
-                                    {{ r.mape|floatformat:1 }},
-                                    {{ r.mae|floatformat:0 }},
-                                    {{ r.mse|floatformat:0 }},
-                                    'MAE',
-                                    {{ r.yearly_calculations|default_if_none:"[]"|safe }},
-                                    {{ r.yearly_metrics|default_if_none:"[]"|safe }},
-                                    {{ r.all_alpha_data|default_if_none:"[]"|safe }}
-                                )">
-                            <i class="bi bi-calculator me-1"></i>Lihat Detail
-                        </button>
+                    <button class="btn btn-sm btn-outline-info" 
+                            onclick="showAllCalculations(
+                                '{{ r.ukuran }}', 
+                                {{ r.alpha_mae|default:r.alpha|floatformat:1 }}, 
+                                {{ r.actual_last|floatformat:0 }}, 
+                                {{ r.forecast_last|default:0|floatformat:0 }}, 
+                                {{ r.forecast_next|floatformat:0 }}, 
+                                {{ r.mape|floatformat:1 }},
+                                {{ r.mae|floatformat:0 }},
+                                {{ r.mse|floatformat:0 }},
+                                'MAE',
+                                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                                {{ r.yearly_metrics|default_if_none:"[]"|safe }},
+                                {{ r.all_alpha_data|default_if_none:"[]"|safe }},
+                                {{ alpha_step }}  <!-- Tambahkan alpha_step -->
+                            )">
+                        <i class="bi bi-calculator me-1"></i>Lihat Detail
+                    </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -579,7 +597,15 @@
                 {% for r in mse_best_results %}
                 <tr>
                     <td><strong>{{ r.ukuran }}</strong></td>
-                    <td><span class="badge bg-primary method-badge">{{ r.alpha|floatformat:2 }}</span></td>
+                    <td>
+    <span class="badge bg-primary method-badge">
+        {% if alpha_step == 0.01 %}
+            {{ r.alpha|floatformat:2 }}
+        {% else %}
+            {{ r.alpha|floatformat:1 }}
+        {% endif %}
+    </span>
+</td>
                     <td>{{ r.mape|floatformat:2 }}%</td>
                     <td>{{ r.mae|floatformat:0 }}</td>
                     <td>
@@ -601,23 +627,24 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info" 
-                                onclick="showAllCalculations(
-                                    '{{ r.ukuran }}', 
-                                    {{ r.alpha_mse|default:r.alpha|floatformat:1 }}, 
-                                    {{ r.actual_last|floatformat:0 }}, 
-                                    {{ r.forecast_last|default:0|floatformat:0 }}, 
-                                    {{ r.forecast_next|floatformat:0 }}, 
-                                    {{ r.mape|floatformat:1 }},
-                                    {{ r.mae|floatformat:0 }},
-                                    {{ r.mse|floatformat:0 }},
-                                    'MSE',
-                                    {{ r.yearly_calculations|default_if_none:"[]"|safe }},
-                                    {{ r.yearly_metrics|default_if_none:"[]"|safe }},
-                                    {{ r.all_alpha_data|default_if_none:"[]"|safe }}
-                                )">
-                            <i class="bi bi-calculator me-1"></i>Lihat Detail
-                        </button>
+                    <button class="btn btn-sm btn-outline-info" 
+                            onclick="showAllCalculations(
+                                '{{ r.ukuran }}', 
+                                {{ r.alpha_mse|default:r.alpha|floatformat:1 }}, 
+                                {{ r.actual_last|floatformat:0 }}, 
+                                {{ r.forecast_last|default:0|floatformat:0 }}, 
+                                {{ r.forecast_next|floatformat:0 }}, 
+                                {{ r.mape|floatformat:1 }},
+                                {{ r.mae|floatformat:0 }},
+                                {{ r.mse|floatformat:0 }},
+                                'MSE',
+                                {{ r.yearly_calculations|default_if_none:"[]"|safe }},
+                                {{ r.yearly_metrics|default_if_none:"[]"|safe }},
+                                {{ r.all_alpha_data|default_if_none:"[]"|safe }},
+                                {{ alpha_step }}  <!-- Tambahkan alpha_step -->
+                            )">
+                        <i class="bi bi-calculator me-1"></i>Lihat Detail
+                    </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -626,22 +653,27 @@
     </div>
 </div>
 
-<!-- 4. Perbandingan Semua Alpha -->
 <div class="card p-4 mb-5">
     <h4 class="text-secondary mb-4 text-center">
         <i class="bi bi-bar-chart header-icon"></i>Perbandingan Semua Alpha 
+        <span class="badge bg-info ms-2">
+            {% if alpha_step == 0.01 %}Step 0.01{% else %}Step 0.1{% endif %}
+        </span>
     </h4>
 
     <div class="alert alert-info mb-4">
         <i class="bi bi-info-circle me-2"></i>
-        <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi (9 alpha × {{ results|length }} ukuran)
+        <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi 
+        ({% if alpha_step == 0.01 %}99{% else %}9{% endif %} alpha × {{ results|length }} ukuran)
     </div>
 
     {% for ukuran, calculations in all_calculations.items %}
     <div class="mb-4">
         <h5 class="text-primary mb-3">
             <i class="bi bi-graph-up"></i> Ukuran: {{ ukuran }}
-            <span class="badge bg-secondary">9 Kombinasi Alpha</span>
+            <span class="badge bg-secondary">
+                {% if alpha_step == 0.01 %}99{% else %}9{% endif %} Kombinasi Alpha
+            </span>
         </h5>
 
         <div class="table-responsive">
@@ -659,7 +691,15 @@
                 <tbody>
                     {% for calc in calculations %}
                     <tr>
-                        <td><strong>{{ calc.alpha|floatformat:2 }}</strong></td>
+                        <td>
+                            <strong>
+                                {% if alpha_step == 0.01 %}
+                                    {{ calc.alpha|floatformat:2 }}
+                                {% else %}
+                                    {{ calc.alpha|floatformat:1 }}
+                                {% endif %}
+                            </strong>
+                        </td>
                         <td>
                             {{ calc.mape|floatformat:1 }}%
                             {% with best_mape=calculations|dictsort:"mape"|first %}
@@ -712,7 +752,6 @@
     </div>
     {% endfor %}
 </div>
-
             <!-- 5. Semua Rumus Perhitungan -->
             <div class="card p-4 mb-5">
                 <h4 class="text-secondary mb-4 text-center">
@@ -1201,18 +1240,59 @@ function formatPercentage(num, decimals = 1) {
     return rounded.toString().replace('.', ',') + '%';
 }
 
-function formatAlpha(num) {
-    if (num === undefined || num === null || isNaN(num)) return '0,00';
-    return Number(num).toFixed(2).replace('.', ',');
-}
+// Fungsi untuk pembulatan dengan format yang sesuai
 function roundNumber(num, decimals = 2) {
     if (num === undefined || num === null) return 0;
     return parseFloat(num.toFixed(decimals));
 }
 
+// Fungsi khusus untuk format alpha (mempertahankan trailing zero sesuai step)
+function formatAlpha(alpha, alphaStep = 0.1) {
+    if (alpha === undefined || alpha === null) return '0.00';
+    
+    const num = parseFloat(alpha);
+    
+    if (alphaStep === 0.01) {
+        // Untuk alpha step 0.01, tampilkan 2 desimal
+        return num.toFixed(2);
+    } else {
+        // Untuk alpha step 0.1, tampilkan 1 desimal
+        return num.toFixed(1);
+    }
+}
+
+// Fungsi untuk format display alpha di tabel - FIXED VERSION
+function formatAlphaDisplay(alpha, alphaStep = 0.1) {
+    if (alpha === undefined || alpha === null) return '0.00';
+    
+    // Konversi ke angka
+    const num = parseFloat(alpha);
+    
+    if (alphaStep === 0.01) {
+        // Untuk alpha step 0.01, tampilkan 2 desimal
+        // Gunakan Math.round untuk menghindari floating point error
+        const rounded = Math.round(num * 100) / 100;
+        return rounded.toFixed(2);
+    } else {
+        // Untuk alpha step 0.1, tampilkan 1 desimal
+        const rounded = Math.round(num * 10) / 10;
+        return rounded.toFixed(1);
+    }
+}
+
+// Fungsi untuk mendapatkan nilai alpha yang tepat untuk perbandingan
+function getExactAlpha(alpha, alphaStep = 0.1) {
+    if (alpha === undefined || alpha === null) return 0;
+    
+    if (alphaStep === 0.01) {
+        return Math.round(alpha * 100) / 100;
+    } else {
+        return Math.round(alpha * 10) / 10;
+    }
+}
 function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNext, 
                             mape, mae, mse, metricType, 
-                            yearlyCalculations, yearlyMetrics, allAlphasData) {
+                            yearlyCalculations, yearlyMetrics, allAlphasData, alphaStep = 0.1) {
     
     // Validasi dan pembulatan parameter
     alpha = roundNumber(alpha || 0, 2);
@@ -1227,8 +1307,9 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
     yearlyMetrics = yearlyMetrics || [];
     allAlphasData = allAlphasData || [];
     
-    // Format alpha untuk display (2 desimal)
-    const alphaDisplay = alpha.toFixed(2);
+    // Format alpha untuk display sesuai step
+    const alphaDisplay = formatAlphaDisplay(alpha, alphaStep);
+
     
     // Inline styles untuk tema terang
     const cardStyle = "background: #f8f9fa; border-left: 4px solid #58a6ff; padding: 15px; margin: 10px 0; border-radius: 8px; color: #212529;";
@@ -1290,8 +1371,7 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         
         displayAlphas.forEach((calc, index) => {
             const isBest = Math.abs(calc.alpha - alpha) < 0.001;
-            const alphaVal = roundNumber(calc.alpha || 0, 2);
-            const alphaDisplay = alphaVal.toFixed(2);
+            const alphaDisplay = formatAlphaDisplay(calc.alpha, alphaStep); // Gunakan format khusus
             const mapeValue = roundNumber(calc.mape || 0);
             const mapeClass = mapeValue < 10 ? 'text-success' : mapeValue < 20 ? 'text-warning' : 'text-danger';
             

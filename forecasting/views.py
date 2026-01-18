@@ -433,7 +433,7 @@ def process_forecasting(ukuran_cols, df, tahun_col, years, alpha_step=0.1):
     percentage_distribution = calculate_percentage_distribution(df, tahun_col, ukuran_cols)
     
     # Batasi jumlah ukuran untuk menghindari overload
-    max_sizes = min(len(ukuran_cols), 10)  # Maksimal 10 ukuran untuk performa
+    max_sizes = min(len(ukuran_cols), 15)
     
     for idx, col in enumerate(ukuran_cols[:max_sizes]):
         try:
