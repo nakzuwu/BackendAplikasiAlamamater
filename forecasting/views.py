@@ -344,22 +344,44 @@ def initialize_best_results():
     }
 
 def update_best_results(best_results, calculation, alpha):
-    """Update best results if current calculation is better"""
+    """Update best results dan simpan semua alpha yang memberikan nilai terbaik"""
+    # Inisialisasi list jika belum ada
+    if 'all_alpha_mape' not in best_results:
+        best_results['all_alpha_mape'] = []
+        best_results['all_alpha_mae'] = []
+        best_results['all_alpha_mse'] = []
+    
+    # Untuk MAPE
     if calculation['mape'] < best_results['mape']:
         best_results['alpha_mape'] = alpha
         best_results['mape'] = calculation['mape']
         best_results['forecast_mape'] = calculation['forecast_values']
         best_results['forecast_next_mape'] = calculation['forecast_next']
+        best_results['all_alpha_mape'] = [alpha]  # Reset list
+    elif abs(calculation['mape'] - best_results['mape']) < 0.0001:
+        # Jika sama, tambahkan ke list
+        if alpha not in best_results['all_alpha_mape']:
+            best_results['all_alpha_mape'].append(alpha)
     
+    # Untuk MAE
     if calculation['mae'] < best_results['mae']:
         best_results['alpha_mae'] = alpha
         best_results['mae'] = calculation['mae']
         best_results['forecast_next_mae'] = calculation['forecast_next']
+        best_results['all_alpha_mae'] = [alpha]
+    elif abs(calculation['mae'] - best_results['mae']) < 0.0001:
+        if alpha not in best_results['all_alpha_mae']:
+            best_results['all_alpha_mae'].append(alpha)
     
+    # Untuk MSE
     if calculation['mse'] < best_results['mse']:
         best_results['alpha_mse'] = alpha
         best_results['mse'] = calculation['mse']
         best_results['forecast_next_mse'] = calculation['forecast_next']
+        best_results['all_alpha_mse'] = [alpha]
+    elif abs(calculation['mse'] - best_results['mse']) < 0.0001:
+        if alpha not in best_results['all_alpha_mse']:
+            best_results['all_alpha_mse'].append(alpha)
 
 def analyze_forecast_trend(forecast_next, actual_last):
     """Analyze forecast trend compared to last actual value"""
@@ -370,7 +392,7 @@ def analyze_forecast_trend(forecast_next, actual_last):
     else:
         return "Stabil"
 
-def create_final_result(ukuran_name, data, years, best_results, calculations):
+def create_final_result(ukuran_name, data, years, best_results, calculations, alpha_step=0.1):
     """Create final result dictionary for a size dengan data tahunan lengkap"""
     tahun_last = years[-1]
     actual_last = data[-1]
@@ -384,15 +406,27 @@ def create_final_result(ukuran_name, data, years, best_results, calculations):
     data_trend = analyze_trend(data)
     forecast_trend = analyze_forecast_trend(best_results['forecast_next_mape'], actual_last)
     
+    # Hitung metrics dengan presisi yang sama
+    if best_mape_calc:
+        # Gunakan metrics dari calculation langsung (jangan hitung ulang)
+        mape = round(best_mape_calc['mape'], 4)
+        mae = round(best_mape_calc['mae'], 4)
+        mse = round(best_mape_calc['mse'], 4)
+    else:
+        # Fallback ke best_results
+        mape = round(best_results['mape'], 4)
+        mae = round(best_results['mae'], 4)
+        mse = round(best_results['mse'], 4)
+    
     result = {
         'ukuran': ukuran_name,
-        'alpha': round(best_results['alpha_mape'], 2),
-        'alpha_mape': round(best_results['alpha_mape'], 2),
-        'alpha_mae': round(best_results['alpha_mae'], 2),
-        'alpha_mse': round(best_results['alpha_mse'], 2),
-        'mape': round(best_results['mape'], 2),
-        'mae': round(best_results['mae'], 2),
-        'mse': round(best_results['mse'], 2),
+        'alpha': round(best_results['alpha_mape'], 4),
+        'alpha_mape': round(best_results['alpha_mape'], 4),
+        'alpha_mae': round(best_results['alpha_mae'], 4),
+        'alpha_mse': round(best_results['alpha_mse'], 4),
+        'mape': mape,  # Gunakan nilai yang sudah dihitung
+        'mae': mae,    # Gunakan nilai yang sudah dihitung
+        'mse': mse,    # Gunakan nilai yang sudah dihitung
         'tahun_last': tahun_last,
         'actual_last': round(actual_last, 2),
         'forecast_last': round(forecast_last, 2),
@@ -404,7 +438,7 @@ def create_final_result(ukuran_name, data, years, best_results, calculations):
         'forecast_trend': forecast_trend,
         'data_points': len(data),
         'data_range': f"{min(data)} - {max(data)}",
-        'data_variance': round(np.var(data), 2) if len(data) > 1 else 0
+        'data_variance': round(np.var(data), 4) if len(data) > 1 else 0
     }
     
     # Tambahkan data tahunan lengkap jika tersedia
@@ -412,6 +446,19 @@ def create_final_result(ukuran_name, data, years, best_results, calculations):
         result['yearly_calculations'] = best_mape_calc.get('yearly_calculations', [])
         result['yearly_metrics'] = best_mape_calc.get('yearly_metrics', [])
         result['metrics_detail'] = best_mape_calc.get('metrics_detail', {})
+        
+        # PASTIKAN: metrics di all_alpha_data sama dengan di result
+        all_alpha_data = []
+        for calc in calculations:
+            # Gunakan metrics yang sama dari calculation
+            all_alpha_data.append({
+                'alpha': calc['alpha'],
+                'mape': calc['mape'],  # Sama dengan yang di calculation
+                'mae': calc['mae'],    # Sama dengan yang di calculation
+                'mse': calc['mse'],    # Sama dengan yang di calculation
+                'forecast_next': calc['forecast_next']
+            })
+        result['all_alpha_data'] = all_alpha_data
     
     chart_data = best_results['forecast_mape'] + [round(best_results['forecast_next_mape'], 2)] if best_results['forecast_mape'] else []
     
@@ -537,82 +584,124 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
             if ukuran in dist_data:
                 dist_data[ukuran].append(percentage)
     
-    # Prepare mae_best_results dan mse_best_results
-    for ukuran, calculations in all_calculations.items():
-        # Find best MAE for this ukuran
-        if calculations:
-            best_mae_calc = min(calculations, key=lambda x: x['mae'])
-            original_result = next((r for r in results if r['ukuran'] == ukuran), None)
-            if original_result:
-                # Tambahkan all_alpha_data untuk mae_best_results - DIPERBAIKI
-                mae_all_alpha_data = []
-                for calc in calculations:
-                    mae_all_alpha_data.append({
-                        'alpha': calc['alpha'],
-                        'mape': calc['mape'],
-                        'mae': calc['mae'],
-                        'mse': calc['mse'],
-                        'forecast_next': calc['forecast_next']
-                    })
-                
-                mae_best_results.append({
-                    'ukuran': ukuran,
-                    'alpha': best_mae_calc['alpha'],
-                    'alpha_mae': best_mae_calc['alpha'],
-                    'mape': best_mae_calc['mape'],
-                    'mae': best_mae_calc['mae'],
-                    'mse': best_mae_calc['mse'],
-                    'forecast_next': best_mae_calc['forecast_next'],
-                    'forecast_last': best_mae_calc['forecast_values'][-1] if best_mae_calc['forecast_values'] else original_result['actual_last'],
-                    'tahun_last': original_result['tahun_last'],
-                    'actual_last': original_result['actual_last'],
-                    'tahun_next': original_result['tahun_next'],
-                    'forecast_trend': analyze_forecast_trend(best_mae_calc['forecast_next'], original_result['actual_last']),
-                    'yearly_calculations': best_mae_calc.get('yearly_calculations', []),
-                    'yearly_metrics': best_mae_calc.get('yearly_metrics', []),  # PASTIKAN INI ADA
-                    'metrics_detail': best_mae_calc.get('metrics_detail', {}),
-                    'all_alpha_data': mae_all_alpha_data  # INI PENTING
-                })
-            
-            # Find best MSE for this ukuran
-            best_mse_calc = min(calculations, key=lambda x: x['mse'])
-            if original_result:
-                # Tambahkan all_alpha_data untuk mse_best_results - DIPERBAIKI
-                mse_all_alpha_data = []
-                for calc in calculations:
-                    mse_all_alpha_data.append({
-                        'alpha': calc['alpha'],
-                        'mape': calc['mape'],
-                        'mae': calc['mae'],
-                        'mse': calc['mse'],
-                        'forecast_next': calc['forecast_next']
-                    })
-                
-                mse_best_results.append({
-                    'ukuran': ukuran,
-                    'alpha': best_mse_calc['alpha'],
-                    'alpha_mse': best_mse_calc['alpha'],
-                    'mape': best_mse_calc['mape'],
-                    'mae': best_mse_calc['mae'],
-                    'mse': best_mse_calc['mse'],
-                    'forecast_next': best_mse_calc['forecast_next'],
-                    'forecast_last': best_mse_calc['forecast_values'][-1] if best_mse_calc['forecast_values'] else original_result['actual_last'],
-                    'tahun_last': original_result['tahun_last'],
-                    'actual_last': original_result['actual_last'],
-                    'tahun_next': original_result['tahun_next'],
-                    'forecast_trend': analyze_forecast_trend(best_mse_calc['forecast_next'], original_result['actual_last']),
-                    'yearly_calculations': best_mse_calc.get('yearly_calculations', []),
-                    'yearly_metrics': best_mse_calc.get('yearly_metrics', []),  # PASTIKAN INI ADA
-                    'metrics_detail': best_mse_calc.get('metrics_detail', {}),
-                    'all_alpha_data': mse_all_alpha_data  # INI PENTING
-                })
+    # Ambil data alpha terbaik dari hasil yang sudah dihitung (results)
+    alpha_terbaik_map = {}
+    for result in results:
+        ukuran = result['ukuran']
+        alpha_terbaik_map[ukuran] = {
+            'alpha_mape': result['alpha_mape'],
+            'alpha_mae': result['alpha_mae'],
+            'alpha_mse': result['alpha_mse'],
+            'mape': result['mape'],
+            'mae': result['mae'],
+            'mse': result['mse'],
+            'forecast_next_mape': result['forecast_next'],
+            'forecast_next_mae': result['forecast_next_mae'],
+            'forecast_next_mse': result['forecast_next_mse']
+        }
     
-    # Tambahkan data ke results (untuk MAPE terbaik)
+    # Prepare mae_best_results dan mse_best_results menggunakan data dari results
+    for result in results:
+        ukuran = result['ukuran']
+        
+        if ukuran in all_calculations:
+            calculations = all_calculations[ukuran]
+            terbaik = alpha_terbaik_map.get(ukuran, {})
+            
+            # Buat MAE best result
+            if 'alpha_mae' in terbaik:
+                # Cari calculation untuk alpha MAE terbaik
+                best_mae_calc = next((calc for calc in calculations 
+                                    if abs(calc['alpha'] - terbaik['alpha_mae']) < 0.0001), None)
+                
+                if best_mae_calc:
+                    mae_all_alpha_data = []
+                    for calc in calculations:
+                        mae_all_alpha_data.append({
+                            'alpha': calc['alpha'],
+                            'mape': calc['mape'],
+                            'mae': calc['mae'],
+                            'mse': calc['mse'],
+                            'forecast_next': calc['forecast_next']
+                        })
+                    
+                    mae_best_results.append({
+                        'ukuran': ukuran,
+                        'alpha': terbaik['alpha_mae'],
+                        'alpha_mae': terbaik['alpha_mae'],
+                        'mape': terbaik['mape'],
+                        'mae': terbaik['mae'],
+                        'mse': terbaik['mse'],
+                        'forecast_next': terbaik['forecast_next_mae'],
+                        'forecast_last': best_mae_calc['forecast_values'][-1] if best_mae_calc['forecast_values'] else result['actual_last'],
+                        'tahun_last': result['tahun_last'],
+                        'actual_last': result['actual_last'],
+                        'tahun_next': result['tahun_next'],
+                        'forecast_trend': analyze_forecast_trend(terbaik['forecast_next_mae'], result['actual_last']),
+                        'yearly_calculations': best_mae_calc.get('yearly_calculations', []),
+                        'yearly_metrics': best_mae_calc.get('yearly_metrics', []),
+                        'metrics_detail': best_mae_calc.get('metrics_detail', {}),
+                        'all_alpha_data': mae_all_alpha_data
+                    })
+            
+            # Buat MSE best result
+            if 'alpha_mse' in terbaik:
+                # Cari calculation untuk alpha MSE terbaik
+                best_mse_calc = next((calc for calc in calculations 
+                                    if abs(calc['alpha'] - terbaik['alpha_mse']) < 0.0001), None)
+                
+                if best_mse_calc:
+                    mse_all_alpha_data = []
+                    for calc in calculations:
+                        mse_all_alpha_data.append({
+                            'alpha': calc['alpha'],
+                            'mape': calc['mape'],
+                            'mae': calc['mae'],
+                            'mse': calc['mse'],
+                            'forecast_next': calc['forecast_next']
+                        })
+                    
+                    mse_best_results.append({
+                        'ukuran': ukuran,
+                        'alpha': terbaik['alpha_mse'],
+                        'alpha_mse': terbaik['alpha_mse'],
+                        'mape': terbaik['mape'],
+                        'mae': terbaik['mae'],
+                        'mse': terbaik['mse'],
+                        'forecast_next': terbaik['forecast_next_mse'],
+                        'forecast_last': best_mse_calc['forecast_values'][-1] if best_mse_calc['forecast_values'] else result['actual_last'],
+                        'tahun_last': result['tahun_last'],
+                        'actual_last': result['actual_last'],
+                        'tahun_next': result['tahun_next'],
+                        'forecast_trend': analyze_forecast_trend(terbaik['forecast_next_mse'], result['actual_last']),
+                        'yearly_calculations': best_mse_calc.get('yearly_calculations', []),
+                        'yearly_metrics': best_mse_calc.get('yearly_metrics', []),
+                        'metrics_detail': best_mse_calc.get('metrics_detail', {}),
+                        'all_alpha_data': mse_all_alpha_data
+                    })
+    
+    # Update all_calculations dengan informasi "terbaik" dari results
+    for ukuran, calculations in all_calculations.items():
+        if ukuran in alpha_terbaik_map:
+            terbaik = alpha_terbaik_map[ukuran]
+            
+            # Tandai alpha terbaik di setiap calculation
+            for calc in calculations:
+                calc['is_best_mape'] = abs(calc['alpha'] - terbaik['alpha_mape']) < 0.0001
+                calc['is_best_mae'] = abs(calc['alpha'] - terbaik['alpha_mae']) < 0.0001
+                calc['is_best_mse'] = abs(calc['alpha'] - terbaik['alpha_mse']) < 0.0001
+    
+    # Update results dengan all_alpha_data yang sudah memiliki flag
     for result in results:
         ukuran = result['ukuran']
         if ukuran in all_calculations:
             calculations = all_calculations[ukuran]
-            best_mape_calc = next((calc for calc in calculations if calc['alpha'] == result['alpha_mape']), None)
+            
+            # Pastikan kita menggunakan calculation untuk alpha MAPE terbaik
+            terbaik = alpha_terbaik_map.get(ukuran, {})
+            best_mape_calc = next((calc for calc in calculations 
+                                 if abs(calc['alpha'] - terbaik.get('alpha_mape', 0)) < 0.0001), None)
+            
             if best_mape_calc:
                 result['actual_values'] = best_mape_calc['actual_values']
                 result['forecast_values'] = best_mape_calc['forecast_values']
@@ -620,7 +709,7 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                 result['yearly_metrics'] = best_mape_calc.get('yearly_metrics', [])
                 result['summary_metrics'] = best_mape_calc.get('summary_metrics', {})
                 
-                # TAMBAHKAN ALL_ALPHA_DATA KE RESULT (MAPE)
+                # Buat all_alpha_data dengan flag terbaik
                 all_alpha_data = []
                 for calc in calculations:
                     all_alpha_data.append({
@@ -628,7 +717,10 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                         'mape': calc['mape'],
                         'mae': calc['mae'],
                         'mse': calc['mse'],
-                        'forecast_next': calc['forecast_next']
+                        'forecast_next': calc['forecast_next'],
+                        'is_best_mape': calc.get('is_best_mape', False),
+                        'is_best_mae': calc.get('is_best_mae', False),
+                        'is_best_mse': calc.get('is_best_mse', False)
                     })
                 result['all_alpha_data'] = all_alpha_data
     
@@ -645,7 +737,7 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
         'dist_years': dist_years,
         'dist_data': dist_data
     }
-
+    
 def forecast(request):
     if request.method == 'POST':
         try:

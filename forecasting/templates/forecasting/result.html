@@ -451,24 +451,24 @@
                         {% endif %}
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info" 
-                                onclick="showAllCalculations(
-                                    '{{ r.ukuran }}', 
-                                    {{ r.alpha_mape|floatformat:1 }}, 
-                                    {{ r.actual_last|floatformat:0 }}, 
-                                    {{ r.forecast_last|floatformat:0 }}, 
-                                    {{ r.forecast_next|floatformat:0 }}, 
-                                    {{ r.mape|floatformat:1 }},
-                                    {{ r.mae|floatformat:0 }},
-                                    {{ r.mse|floatformat:0 }},
-                                    'MAPE',
-                                    {{ r.yearly_calculations|safe }},
-                                    {{ r.yearly_metrics|safe }},
-                                    {{ r.all_alpha_data|safe }},
-                                    {{ alpha_step }}  <!-- Tambahkan alpha_step -->
-                                )">
-                            <i class="bi bi-calculator me-1"></i>Lihat Detail
-                        </button>
+<button class="btn btn-sm btn-outline-info" 
+        onclick="showAllCalculations(
+            '{{ r.ukuran }}', 
+            {{ r.alpha_mape }},  <!-- Jangan gunakan floatformat di sini -->
+            {{ r.actual_last }}, 
+            {{ r.forecast_last }}, 
+            {{ r.forecast_next }}, 
+            {{ r.mape }},  <!-- Kirim nilai asli -->
+            {{ r.mae }},   <!-- Kirim nilai asli -->
+            {{ r.mse }},   <!-- Kirim nilai asli -->
+            'MAPE',
+            {{ r.yearly_calculations|safe }},
+            {{ r.yearly_metrics|safe }},
+            {{ r.all_alpha_data|safe }},
+            {{ alpha_step }}
+        )">
+    <i class="bi bi-calculator me-1"></i>Lihat Detail
+</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -542,7 +542,7 @@
                     <button class="btn btn-sm btn-outline-info" 
                             onclick="showAllCalculations(
                                 '{{ r.ukuran }}', 
-                                {{ r.alpha_mae|default:r.alpha|floatformat:1 }}, 
+                                {{ r.alpha_mae }}, 
                                 {{ r.actual_last|floatformat:0 }}, 
                                 {{ r.forecast_last|default:0|floatformat:0 }}, 
                                 {{ r.forecast_next|floatformat:0 }}, 
@@ -614,7 +614,7 @@
                     <td>{{ r.tahun_last }}</td>
                     <td>{{ r.actual_last|floatformat:0 }}</td>
                     <td>{{ r.tahun_next }}</td>
-                    <td class="bg-warning bg-opacity-25 fw-bold">`
+                    <td class="bg-warning bg-opacity-25 fw-bold">
                         {{ r.forecast_next|floatformat:0 }}
                     </td>
                     <td>
@@ -630,7 +630,7 @@
                     <button class="btn btn-sm btn-outline-info" 
                             onclick="showAllCalculations(
                                 '{{ r.ukuran }}', 
-                                {{ r.alpha_mse|default:r.alpha|floatformat:1 }}, 
+                                {{ r.alpha_mse}}, 
                                 {{ r.actual_last|floatformat:0 }}, 
                                 {{ r.forecast_last|default:0|floatformat:0 }}, 
                                 {{ r.forecast_next|floatformat:0 }}, 
@@ -654,6 +654,7 @@
 </div>
 
 <div class="card p-4 mb-5">
+ <div class="card p-4 mb-5">
     <h4 class="text-secondary mb-4 text-center">
         <i class="bi bi-bar-chart header-icon"></i>Perbandingan Semua Alpha 
         <span class="badge bg-info ms-2">
@@ -702,44 +703,32 @@
                         </td>
                         <td>
                             {{ calc.mape|floatformat:1 }}%
-                            {% with best_mape=calculations|dictsort:"mape"|first %}
-                                {% if calc.mape == best_mape.mape %}
-                                    <span class="badge bg-success">Terbaik</span>
-                                {% endif %}
-                            {% endwith %}
+                            {% if calc.is_best_mape %}
+                                <span class="badge bg-success">Terbaik</span>
+                            {% endif %}
                         </td>
                         <td>
                             {{ calc.mae|floatformat:0 }}
-                            {% with best_mae=calculations|dictsort:"mae"|first %}
-                                {% if calc.mae == best_mae.mae %}
-                                    <span class="badge bg-info">Terbaik</span>
-                                {% endif %}
-                            {% endwith %}
+                            {% if calc.is_best_mae %}
+                                <span class="badge bg-info">Terbaik</span>
+                            {% endif %}
                         </td>
                         <td>
                             {{ calc.mse|floatformat:0 }}
-                            {% with best_mse=calculations|dictsort:"mse"|first %}
-                                {% if calc.mse == best_mse.mse %}
-                                    <span class="badge bg-warning">Terbaik</span>
-                                {% endif %}
-                            {% endwith %}
+                            {% if calc.is_best_mse %}
+                                <span class="badge bg-warning">Terbaik</span>
+                            {% endif %}
                         </td>
                         <td>
-                            {% with best_mape=calculations|dictsort:"mape"|first %}
-                                {% if calc.mape == best_mape.mape %}
-                                    <span class="badge bg-success">MAPE Terbaik</span>
-                                {% endif %}
-                            {% endwith %}
-                            {% with best_mae=calculations|dictsort:"mae"|first %}
-                                {% if calc.mae == best_mae.mae %}
-                                    <span class="badge bg-info">MAE Terbaik</span>
-                                {% endif %}
-                            {% endwith %}
-                            {% with best_mse=calculations|dictsort:"mse"|first %}
-                                {% if calc.mse == best_mse.mse %}
-                                    <span class="badge bg-warning">MSE Terbaik</span>
-                                {% endif %}
-                            {% endwith %}
+                            {% if calc.is_best_mape %}
+                                <span class="badge bg-success">MAPE Terbaik</span>
+                            {% endif %}
+                            {% if calc.is_best_mae %}
+                                <span class="badge bg-info">MAE Terbaik</span>
+                            {% endif %}
+                            {% if calc.is_best_mse %}
+                                <span class="badge bg-warning">MSE Terbaik</span>
+                            {% endif %}
                         </td>
                         <td class="fw-bold">
                             {{ calc.forecast_next|floatformat:0 }}
@@ -749,6 +738,21 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Tambahkan informasi alpha terbaik untuk ukuran ini -->
+        {% with result=results|first %}
+            {% if result.ukuran == ukuran %}
+                <div class="alert alert-light mt-2">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Alpha terbaik untuk {{ ukuran }}:</strong><br>
+                        • MAPE Terbaik: Alpha {{ result.alpha_mape|floatformat:2 }} = {{ result.mape|floatformat:1 }}%<br>
+                        • MAE Terbaik: Alpha {{ result.alpha_mae|floatformat:2 }} = {{ result.mae|floatformat:0 }}<br>
+                        • MSE Terbaik: Alpha {{ result.alpha_mse|floatformat:2 }} = {{ result.mse|floatformat:0 }}
+                    </small>
+                </div>
+            {% endif %}
+        {% endwith %}
     </div>
     {% endfor %}
 </div>
@@ -825,14 +829,14 @@
                 </h4>
                 <canvas id="multiChart"></canvas>
             </div>
-<div class="card p-4 mb-5">
-    <h4 class="text-secondary text-center mb-4">
-        <i class="bi bi-bar-chart-fill header-icon"></i>Grafik Perbandingan per Tahun (%)
-    </h4>
-    <div style="height: 400px; position: relative;"> <!-- Container dengan tinggi tetap -->
-        <canvas id="yearlyChart"></canvas>
-    </div>
-</div>
+            <div class="card p-4 mb-5">
+                <h4 class="text-secondary text-center mb-4">
+                    <i class="bi bi-bar-chart-fill header-icon"></i>Grafik Perbandingan per Tahun (%)
+                </h4>
+                <div style="height: 400px; position: relative;"> <!-- Container dengan tinggi tetap -->
+                    <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
             <!-- Tambahkan tombol ini di bagian sebelum tombol "Kembali ke Halaman Awal" -->
             <!-- Ganti bagian tombol di akhir halaman dengan ini -->
             <div class="text-center">
@@ -875,15 +879,21 @@
 
         <!-- Chart.js script -->
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', () => {
     try {
         const chartData = {{ chart_data|safe }};
-        const labels = {{ years|safe }};
+        const years = {{ years|safe }}; // Tahun historis
+        const nextYear = {{ results.0.tahun_next|safe }}; // Tahun prediksi (2026)
+        
+        // Gabungkan tahun historis + tahun prediksi
+        const allYears = [...years, nextYear];
+        
         const colors = [
             '#58a6ff', '#3fb950', '#f85149', '#d29922', '#db61a2', '#8b949e'
         ];
 
-        // === Grafik 1: Tren per ukuran (Line Chart)
+        // === Grafik 1: Line Chart dengan tahun prediksi ===
         const ctxLine = document.getElementById('multiChart').getContext('2d');
         const datasets = [];
 
@@ -905,17 +915,20 @@
             }
             i++;
         }
-
+        
         new Chart(ctxLine, {
             type: 'line',
-            data: { labels: labels, datasets: datasets },
+            data: { 
+                labels: allYears,
+                datasets: datasets 
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Trend Forecasting Semua Ukuran',
+                        text: 'Trend Forecasting Semua Ukuran (Termasuk Prediksi ' + nextYear + ')',
                         color: '#f0f6fc',
                         font: { size: 16 }
                     },
@@ -933,7 +946,14 @@
                         titleColor: '#f0f6fc',
                         bodyColor: '#f0f6fc',
                         borderColor: '#30363d',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const year = allYears[tooltipItems[0].dataIndex];
+                                const isPrediction = tooltipItems[0].dataIndex === allYears.length - 1;
+                                return isPrediction ? `Prediksi ${year}` : `Tahun ${year}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -943,8 +963,20 @@
                             text: 'Tahun',
                             color: '#8b949e'
                         },
-                        grid: { color: '#30363d' },
-                        ticks: { color: '#8b949e' }
+                        grid: { 
+                            color: '#30363d',
+                            drawOnChartArea: true
+                        },
+                        ticks: { 
+                            color: '#8b949e',
+                            callback: function(value, index) {
+                                const year = allYears[index];
+                                if (index === allYears.length - 1) {
+                                    return `${year}`;
+                                }
+                                return year;
+                            }
+                        }
                     },
                     y: {
                         beginAtZero: false,
@@ -961,45 +993,59 @@
                             }
                         }
                     }
+                },
+                elements: {
+                    point: {
+                        radius: function(context) {
+                            return context.dataIndex === context.dataset.data.length - 1 ? 6 : 4;
+                        }
+                    }
                 }
             }
         });
+// === Grafik 2: Stacked Horizontal Percentage Bar Chart ===
+const ctxBar = document.getElementById('yearlyChart').getContext('2d');
 
-        // === Grafik 2: Stacked Horizontal Percentage Bar Chart ===
-        const ctxBar = document.getElementById('yearlyChart').getContext('2d');
+// PERBAIKAN: Gabungkan tahun historis + tahun prediksi
+const allYearsForPercentage = [...years, nextYear];
 
-        // Hitung total per tahun
-        const yearlyTotals = labels.map((year, index) => {
-            return Object.values(chartData).reduce((sum, dataset) => {
-                return sum + (dataset[index] || 0);
-            }, 0);
-        });
+// Hitung total per tahun (termasuk prediksi 2026)
+const yearlyTotals = allYearsForPercentage.map((year, index) => {
+    return Object.values(chartData).reduce((sum, dataset) => {
+        // Untuk tahun prediksi (indeks terakhir), gunakan data terakhir dari setiap dataset
+        const dataValue = dataset[index] || (index === allYearsForPercentage.length - 1 ? dataset[dataset.length - 1] : 0);
+        return sum + (dataValue || 0);
+    }, 0);
+});
 
-        // Konversi ke persentase
-        const percentageData = {};
-        Object.keys(chartData).forEach(key => {
-            percentageData[key] = chartData[key].map((value, index) => {
-                const total = yearlyTotals[index];
-                return total > 0 ? (value / total) * 100 : 0;
-            });
-        });
+// Konversi ke persentase (termasuk prediksi 2026)
+const percentageData = {};
+Object.keys(chartData).forEach(key => {
+    percentageData[key] = allYearsForPercentage.map((year, index) => {
+        const dataset = chartData[key];
+        const dataValue = dataset[index] || (index === allYearsForPercentage.length - 1 ? dataset[dataset.length - 1] : 0);
+        const total = yearlyTotals[index];
+        return total > 0 ? (dataValue / total) * 100 : 0;
+    });
+});
 
-        // Dataset STACKED
-        const barDatasets = Object.keys(percentageData).map((key, idx) => ({
-            label: key,
-            data: percentageData[key],
-            backgroundColor: colors[idx % colors.length],
-            borderColor: '#ffffff',
-            borderWidth: 1,
-            barThickness: 26,
-            borderRadius: 6
-        }));
+// Dataset STACKED (termasuk prediksi 2026)
+const barDatasets = Object.keys(percentageData).map((key, idx) => ({
+    label: key,
+    data: percentageData[key],
+    backgroundColor: colors[idx % colors.length],
+    hoverBackgroundColor: colors[idx % colors.length],
+    borderColor: '#ffffff',
+    borderWidth: 1,
+    barThickness: 26,
+    borderRadius: 6
+}));
 
         // Custom plugin untuk label di dalam bar
         const insideLabelsPlugin = {
             id: 'insideLabels',
             afterDatasetsDraw(chart) {
-                const { ctx } = chart;
+                const { ctx, scales: { x, y } } = chart;
                 ctx.save();
 
                 chart.data.datasets.forEach((dataset, datasetIndex) => {
@@ -1012,14 +1058,18 @@
 
                         // Hitung posisi tengah segmen stacked bar
                         let centerX = bar.x;
-                        if (datasetIndex > 0) {
-                            // Untuk dataset setelah pertama, hitung posisi berdasarkan segmen sebelumnya
-                            const prevMeta = chart.getDatasetMeta(datasetIndex - 1);
-                            const prevBar = prevMeta.data[index];
-                            centerX = (prevBar.x + bar.x) / 2;
-                        } else {
-                            // Untuk dataset pertama
+                        const segmentWidth = bar.width;
+                        
+                        if (datasetIndex === 0) {
                             centerX = bar.x / 2;
+                        } else {
+                            let previousWidth = 0;
+                            for (let i = 0; i < datasetIndex; i++) {
+                                const prevMeta = chart.getDatasetMeta(i);
+                                const prevBar = prevMeta.data[index];
+                                previousWidth += prevBar.width;
+                            }
+                            centerX = previousWidth + (segmentWidth / 2);
                         }
 
                         const centerY = bar.y;
@@ -1051,94 +1101,129 @@
             }
         };
 
+        // PERBAIKAN: Gunakan historicalYears untuk labels
         new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: barDatasets
+    type: 'bar',
+    data: {
+        labels: allYearsForPercentage, // Termasuk 2026
+        datasets: barDatasets
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Distribusi Permintaan per Tahun (%) - Termasuk Prediksi ' + nextYear,
+                font: { size: 16, weight: 'bold' },
+                color: '#f0f6fc'
             },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Distribusi Permintaan per Tahun (%)',
-                        font: { size: 16, weight: 'bold' },
-                        color: '#f0f6fc'
-                    },
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            boxWidth: 10,
-                            font: { size: 12 },
-                            color: '#8b949e'
-                        }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: '#21262d',
-                        titleColor: '#f0f6fc',
-                        bodyColor: '#f0f6fc',
-                        borderColor: '#30363d',
-                        borderWidth: 1,
-                        callbacks: {
-                            label(context) {
-                                const label = context.dataset.label;
-                                const percent = context.raw.toFixed(1);
-                                const yearIndex = context.dataIndex;
-                                const original = chartData[label][yearIndex] || 0;
-                                return `${label}: ${percent}% (${original.toLocaleString('id-ID')})`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        stacked: true,
-                        max: 100,
-                        ticks: {
-                            callback: value => value + '%',
-                            color: '#8b949e'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Persentase',
-                            color: '#8b949e'
-                        },
-                        grid: { 
-                            color: '#30363d',
-                            drawBorder: false
-                        }
-                    },
-                    y: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: 'Tahun',
-                            color: '#8b949e'
-                        },
-                        grid: { 
-                            display: false,
-                            drawBorder: false
-                        },
-                        ticks: { 
-                            color: '#8b949e',
-                            padding: 10
-                        }
-                    }
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    boxWidth: 10,
+                    font: { size: 12 },
+                    color: '#8b949e'
                 }
             },
-            plugins: [insideLabelsPlugin] // Masukkan plugin di sini
-        });
-
+            tooltip: {
+                mode: 'index',
+                intersect: false,
+                axis: 'y',  
+                backgroundColor: '#21262d',
+                titleColor: '#f0f6fc',
+                bodyColor: '#f0f6fc',
+                borderColor: '#30363d',
+                borderWidth: 1,
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const dataIndex = tooltipItems[0].dataIndex;
+                        const year = allYearsForPercentage[dataIndex];
+                        const isPrediction = dataIndex === allYearsForPercentage.length - 1;
+                        return isPrediction ? `Prediksi ${year}` : `Tahun ${year}`;
+                    },
+                    label: function(context) {
+                        const label = context.dataset.label;
+                        const percent = context.parsed.x.toFixed(1);
+                        const yearIndex = context.dataIndex;
+                        const year = allYearsForPercentage[yearIndex];
+                        
+                        // Ambil nilai asli
+                        const dataset = chartData[label];
+                        let originalValue = dataset[yearIndex];
+                        if (yearIndex === allYearsForPercentage.length - 1) {
+                            // Untuk prediksi 2026, ambil nilai terakhir
+                            originalValue = dataset[dataset.length - 1];
+                        }
+                        
+                        const isPrediction = yearIndex === allYearsForPercentage.length - 1;
+                        const suffix = isPrediction ? ' (Prediksi)' : '';
+                        return `${label}: ${percent}% (${originalValue.toLocaleString('id-ID')} unit${suffix})`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                stacked: true,
+                max: 100,
+                ticks: {
+                    callback: value => value + '%',
+                    color: '#8b949e'
+                },
+                title: {
+                    display: true,
+                    text: 'Persentase',
+                    color: '#8b949e'
+                },
+                grid: { 
+                    color: '#30363d',
+                    drawBorder: false
+                }
+            },
+            y: {
+                stacked: true,
+                title: {
+                    display: true,
+                    text: 'Tahun',
+                    color: '#8b949e'
+                },
+                grid: { 
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: { 
+                    color: '#8b949e',
+                    padding: 10,
+                    callback: function(value, index) {
+                        const year = allYearsForPercentage[index];
+                        const isPrediction = index === allYearsForPercentage.length - 1;
+                        return isPrediction ? `${year}` : year;
+                    }
+                },
+                afterFit: function(scale) {
+                    scale.width = 60; // Lebarkan sedikit untuk ikon prediksi
+                }
+            }
+        }
+    },
+    plugins: [insideLabelsPlugin]
+});
     } catch (err) {
         console.error("Chart error:", err);
+        // Tampilkan pesan error di konsol
+        console.log("Chart data:", {{ chart_data|safe }});
+        console.log("Years:", {{ years|safe }});
+        console.log("Next year:", {{ results.0.tahun_next|safe }});
     }
 });
+
 
             // Theme toggle functionality
             document.getElementById('themeToggle').addEventListener('click', function() {
