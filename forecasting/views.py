@@ -566,6 +566,8 @@ def get_all_alpha_calculations_for_ukuran(ukuran_name, data, years, alpha_step=0
     
     return all_alpha_data
 
+import json
+
 def prepare_context(results, chart_data, years, all_calculations, percentage_distribution):
     """Prepare context for template"""
     best_mape_all = min([r['mape'] for r in results]) if results else None
@@ -641,7 +643,11 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                         'yearly_calculations': best_mae_calc.get('yearly_calculations', []),
                         'yearly_metrics': best_mae_calc.get('yearly_metrics', []),
                         'metrics_detail': best_mae_calc.get('metrics_detail', {}),
-                        'all_alpha_data': mae_all_alpha_data
+                        'all_alpha_data': mae_all_alpha_data,
+                        # ✅ ADD JSON serialization
+                        'all_alpha_data_json': json.dumps(mae_all_alpha_data),
+                        'yearly_calculations_json': json.dumps(best_mae_calc.get('yearly_calculations', [])),
+                        'yearly_metrics_json': json.dumps(best_mae_calc.get('yearly_metrics', []))
                     })
             
             # Buat MSE best result
@@ -677,7 +683,11 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                         'yearly_calculations': best_mse_calc.get('yearly_calculations', []),
                         'yearly_metrics': best_mse_calc.get('yearly_metrics', []),
                         'metrics_detail': best_mse_calc.get('metrics_detail', {}),
-                        'all_alpha_data': mse_all_alpha_data
+                        'all_alpha_data': mse_all_alpha_data,
+                        # ✅ ADD JSON serialization
+                        'all_alpha_data_json': json.dumps(mse_all_alpha_data),
+                        'yearly_calculations_json': json.dumps(best_mse_calc.get('yearly_calculations', [])),
+                        'yearly_metrics_json': json.dumps(best_mse_calc.get('yearly_metrics', []))
                     })
     
     # Update all_calculations dengan informasi "terbaik" dari results
@@ -691,7 +701,7 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                 calc['is_best_mae'] = abs(calc['alpha'] - terbaik['alpha_mae']) < 0.0001
                 calc['is_best_mse'] = abs(calc['alpha'] - terbaik['alpha_mse']) < 0.0001
     
-    # Update results dengan all_alpha_data yang sudah memiliki flag
+    # ✅ CRITICAL FIX: Update results dengan JSON serialization
     for result in results:
         ukuran = result['ukuran']
         if ukuran in all_calculations:
@@ -722,7 +732,13 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                         'is_best_mae': calc.get('is_best_mae', False),
                         'is_best_mse': calc.get('is_best_mse', False)
                     })
+                
                 result['all_alpha_data'] = all_alpha_data
+                
+                # ✅ SERIALIZE TO JSON for template
+                result['all_alpha_data_json'] = json.dumps(all_alpha_data)
+                result['yearly_calculations_json'] = json.dumps(result['yearly_calculations'])
+                result['yearly_metrics_json'] = json.dumps(result['yearly_metrics'])
     
     return {
         'results': results,
@@ -741,8 +757,20 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
 def forecast(request):
     if request.method == 'POST':
         try:
-            # Get alpha step dari form
-            alpha_step = float(request.POST.get('alpha_step', '0.1'))
+            # Get alpha step dari form dan pastikan float
+            alpha_step_input = request.POST.get('alpha_step', '0.1')
+            
+            # Konversi ke float, jika ada masalah gunakan default
+            try:
+                alpha_step = float(alpha_step_input)
+            except (ValueError, TypeError):
+                alpha_step = 0.1  # Default
+            
+            # Pastikan hanya 0.1 atau 0.01
+            if alpha_step not in [0.1, 0.01]:
+                alpha_step = 0.1
+            
+            print(f"DEBUG: alpha_step = {alpha_step} (type: {type(alpha_step)})")
             
             # Process input data
             df = process_input_data(request)
@@ -775,6 +803,9 @@ def forecast(request):
             context['alpha_step'] = alpha_step
             context['alpha_count'] = 99 if alpha_step == 0.01 else 9
             
+            # DEBUG: Tampilkan di console
+            print(f"DEBUG: Sending to template: alpha_step={alpha_step}, type={type(alpha_step)}")
+            
             return render(request, 'forecasting/result.html', context)
 
         except Exception as e:
@@ -785,7 +816,6 @@ def forecast(request):
             })
 
     return render(request, 'forecasting/index.html')
-
 @csrf_exempt
 def api_forecast(request):
     if request.method != 'POST':
