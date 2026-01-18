@@ -326,6 +326,17 @@
                 </a>
             </div>
             {% else %}
+            <div class="alert alert-info text-center">
+    <i class="bi bi-sliders me-2"></i>
+    <strong>Presisi Alpha:</strong> 
+    {% if alpha_step == 0.01 %}
+        Menggunakan Alpha Step 0.01 (99 kombinasi alpha)
+    {% else %}
+        Menggunakan Alpha Step 0.1 (9 kombinasi alpha)
+    {% endif %}
+    | 
+    <strong>Total Perhitungan:</strong> {{ total_calculations }} kombinasi
+</div>
 
             <div class="text-center mb-5">
                 <h1 class="fw-bold text-primary mb-3">
@@ -354,6 +365,16 @@
             {% endwith %}
         </div>
     </div>
+    <div class="metric-card">
+    <div class="metric-label">Alpha Step</div>
+    <div class="metric-value">
+        {% if alpha_step == 0.01 %}
+            0.01 (99)
+        {% else %}
+            0.1 (9)
+        {% endif %}
+    </div>
+</div>
     <div class="metric-card">
         <div class="metric-label">MSE Terbaik</div>
         <div class="metric-value">

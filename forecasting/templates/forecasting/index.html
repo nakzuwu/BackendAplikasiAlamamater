@@ -299,13 +299,71 @@
         </div>
       </div>
 
-      <!-- Ganti bagian input manual dengan ini -->
       <div class="card p-4 mb-4">
-          <h4 class="text-secondary mb-4">
-              <i class="bi bi-keyboard header-icon"></i>Input Manual
-          </h4>
-          <form method="POST" enctype="multipart/form-data" action="{% url 'forecast' %}">
-              {% csrf_token %}
+    <h4 class="text-secondary mb-4">
+        <i class="bi bi-sliders header-icon"></i>Pilih Presisi Alpha
+    </h4>
+    
+    <div class="alert alert-info mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Pilih jenis perhitungan alpha:</strong> Semakin kecil step, semakin akurat namun membutuhkan waktu lebih lama.
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="alpha-option card p-3 text-center" 
+                 onclick="selectAlphaOption('0.1', this)">
+                <div class="feature-icon">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <h5>Alpha Step 0.1</h5>
+                <div class="metric-value text-primary fw-bold">9 Kombinasi</div>
+                <p class="text-muted small mb-0">
+                    (0.1, 0.2, 0.3, ..., 0.9)
+                </p>
+                <div class="mt-2">
+                    <span class="badge bg-success">Cepat</span>
+                    <span class="badge bg-secondary">Default</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="alpha-option card p-3 text-center"
+                 onclick="selectAlphaOption('0.01', this)">
+                <div class="feature-icon">
+                    <i class="bi bi-zoom-in"></i>
+                </div>
+                <h5>Alpha Step 0.01</h5>
+                <div class="metric-value text-warning fw-bold">99 Kombinasi</div>
+                <p class="text-muted small mb-0">
+                    (0.01, 0.02, 0.03, ..., 0.99)
+                </p>
+                <div class="mt-2">
+                    <span class="badge bg-warning">Detail</span>
+                    <span class="badge bg-info">Akurat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <input type="hidden" name="alpha_step" id="alphaStepInput" value="0.1">
+    
+    <div class="text-center mt-3">
+        <div id="alphaSelectionInfo" class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>
+            <span id="alphaInfoText">Alpha step 0.1 dipilih (9 kombinasi) - Perhitungan lebih cepat</span>
+        </div>
+    </div>
+</div>
+
+      <!-- Ganti bagian input manual dengan ini -->
+<div class="card p-4 mb-4">
+    <h4 class="text-secondary mb-4">
+        <i class="bi bi-keyboard header-icon"></i>Input Manual
+    </h4>
+    <form method="POST" enctype="multipart/form-data" action="{% url 'forecast' %}" id="manualForm">
+        {% csrf_token %}
+         <input type="hidden" name="alpha_step" id="manualAlphaStep" value="0.1">
               <div class="mb-4">
                   <label for="data" class="form-label">
                       Masukkan Data Permintaan (Format: Baris pertama header ukuran, baris berikutnya data per tahun)
@@ -345,9 +403,9 @@
                       </div>
                   </div>
               </div>
-              <button type="submit" class="btn btn-primary w-100 py-3">
-                  <i class="bi bi-calculator me-2"></i>Proses Manual
-              </button>
+        <button type="submit" class="btn btn-primary w-100 py-3">
+            <i class="bi bi-calculator me-2"></i>Proses Peramalan dengan Alpha Step 0.1
+        </button>
           </form>
       </div>
 
@@ -396,17 +454,13 @@
           previewTable.style.display = 'block';
       });
       </script>
-      <div class="card p-4">
-        <h4 class="text-secondary mb-4">
-          <i class="bi bi-cloud-upload header-icon"></i>Upload File CSV
-        </h4>
-        <form
-          action="/forecast/"
-          method="POST"
-          enctype="multipart/form-data"
-          id="csvForm"
-        >
-          {% csrf_token %}
+<div class="card p-4">
+    <h4 class="text-secondary mb-4">
+        <i class="bi bi-cloud-upload header-icon"></i>Upload File CSV
+    </h4>
+    <form action="/forecast/" method="POST" enctype="multipart/form-data" id="csvForm">
+        {% csrf_token %}
+        <input type="hidden" name="alpha_step" id="csvAlphaStep" value="0.1">
           <div class="mb-4">
             <label for="file" class="form-label">Pilih File CSV</label>
 
@@ -433,9 +487,9 @@
               XXL)
             </div>
           </div>
-          <button type="submit" class="btn btn-success w-100 py-3">
-            <i class="bi bi-upload me-2"></i>Upload CSV
-          </button>
+        <button type="submit" class="btn btn-success w-100 py-3">
+            <i class="bi bi-upload me-2"></i>Upload & Proses dengan Alpha Step 0.1
+        </button>
         </form>
       </div>
 
@@ -530,6 +584,146 @@
           }, 2000);
         }
       });
+      // Variabel untuk menyimpan alpha step yang dipilih
+let selectedAlphaStep = '0.1';
+
+// Fungsi untuk memilih alpha option
+function selectAlphaOption(step, element) {
+    selectedAlphaStep = step;
+    
+    // Update UI semua alpha option
+    document.querySelectorAll('.alpha-option').forEach(option => {
+        option.style.borderColor = '#30363d';
+        option.style.backgroundColor = '';
+    });
+    
+    // Sorot yang dipilih
+    element.style.borderColor = '#3fb950';
+    element.style.backgroundColor = 'rgba(63, 185, 80, 0.1)';
+    
+    // Update info teks
+    const infoText = document.getElementById('alphaInfoText');
+    if (step === '0.1') {
+        infoText.textContent = 'Alpha step 0.1 dipilih (9 kombinasi) - Perhitungan lebih cepat';
+        infoText.parentElement.className = 'alert alert-success';
+    } else {
+        infoText.textContent = 'Alpha step 0.01 dipilih (99 kombinasi) - Hasil lebih akurat';
+        infoText.parentElement.className = 'alert alert-warning';
+    }
+    
+    // Update semua hidden inputs
+    document.getElementById('alphaStepInput').value = step;
+    document.getElementById('manualAlphaStep').value = step;
+    document.getElementById('csvAlphaStep').value = step;
+    
+    // Update tombol submit
+    const manualBtn = document.querySelector('#manualForm button[type="submit"]');
+    const csvBtn = document.querySelector('#csvForm button[type="submit"]');
+    
+    if (step === '0.1') {
+        manualBtn.innerHTML = '<i class="bi bi-calculator me-2"></i>Proses Peramalan dengan Alpha Step 0.1';
+        csvBtn.innerHTML = '<i class="bi bi-upload me-2"></i>Upload & Proses dengan Alpha Step 0.1';
+    } else {
+        manualBtn.innerHTML = '<i class="bi bi-calculator me-2"></i>Proses Peramalan dengan Alpha Step 0.01';
+        csvBtn.innerHTML = '<i class="bi bi-upload me-2"></i>Upload & Proses dengan Alpha Step 0.01';
+    }
+}
+
+// Tambahkan event listener untuk form
+document.getElementById('manualForm').addEventListener('submit', function(e) {
+    // Tambahkan konfirmasi jika memilih 0.01 (karena lebih berat)
+    if (selectedAlphaStep === '0.01') {
+        const confirmed = confirm(
+            'Anda memilih Alpha Step 0.01 (99 kombinasi).\n' +
+            'Perhitungan akan memakan waktu lebih lama.\n' +
+            'Apakah Anda yakin ingin melanjutkan?'
+        );
+        
+        if (!confirmed) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Tampilkan loading indicator
+        const btn = this.querySelector('button[type="submit"]');
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Memproses...';
+        btn.disabled = true;
+    }
+});
+
+document.getElementById('csvForm').addEventListener('submit', function(e) {
+    // Validasi file dulu
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files.length) {
+        e.preventDefault();
+        alert("Silakan pilih file CSV terlebih dahulu");
+        return false;
+    }
+    
+    // Konfirmasi untuk alpha step 0.01
+    if (selectedAlphaStep === '0.01') {
+        const confirmed = confirm(
+            'Anda memilih Alpha Step 0.01 (99 kombinasi).\n' +
+            'Perhitungan akan memakan waktu lebih lama.\n' +
+            'Apakah Anda yakin ingin melanjutkan?'
+        );
+        
+        if (!confirmed) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Tampilkan loading indicator
+        const btn = this.querySelector('button[type="submit"]');
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Memproses...';
+        btn.disabled = true;
+    }
+});
+
+// Inisialisasi saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default alpha option
+    const defaultOption = document.querySelector('.alpha-option:first-child');
+    if (defaultOption) {
+        selectAlphaOption('0.1', defaultOption);
+    }
+    
+    // Tambahkan style untuk alpha option
+    const style = document.createElement('style');
+    style.textContent = `
+        .alpha-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #30363d;
+            height: 100%;
+        }
+        
+        .alpha-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(88, 166, 255, 0.2);
+            border-color: #58a6ff;
+        }
+        
+        .alpha-option .metric-value {
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        
+        .alpha-option .feature-icon {
+            font-size: 2.5rem;
+        }
+        
+        #alphaSelectionInfo {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+});
     </script>
   </body>
 </html>

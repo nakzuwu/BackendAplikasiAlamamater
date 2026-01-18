@@ -421,12 +421,48 @@ def create_final_result(ukuran_name, data, years, best_results, calculations):
         'calculations': calculations
     }
 
-def process_single_size_forecast(ukuran_name, data, years):
+
+def process_forecasting(ukuran_cols, df, tahun_col, years, alpha_step=0.1):
+    """Process forecasting for all size columns"""
+    results = []
+    chart_data = {}
+    all_calculations = {}
+    percentage_distribution = {}
+    
+    # Hitung distribusi persentase
+    percentage_distribution = calculate_percentage_distribution(df, tahun_col, ukuran_cols)
+    
+    # Batasi jumlah ukuran untuk menghindari overload
+    max_sizes = min(len(ukuran_cols), 10)  # Maksimal 10 ukuran untuk performa
+    
+    for idx, col in enumerate(ukuran_cols[:max_sizes]):
+        try:
+            data = df[col].dropna().astype(float).tolist()
+            if len(data) < 2:
+                continue
+                
+            result = process_single_size_forecast(col, data, years, alpha_step)
+            if result:
+                results.append(result['result'])
+                chart_data[col] = result['chart_data']
+                all_calculations[col] = result['calculations']
+                
+        except (ValueError, TypeError) as e:
+            print(f"Error processing {col}: {str(e)}")
+            continue
+    
+    return results, chart_data, all_calculations, percentage_distribution
+
+def process_single_size_forecast(ukuran_name, data, years, alpha_step=0.1):
     """Process forecasting for a single size dengan years"""
     calculations = []
     best_results = initialize_best_results()
     
-    alphas = [i / 100 for i in range(1, 100)]
+    # Tentukan alphas berdasarkan step
+    if alpha_step == 0.1:  # 0.1 sampai 0.9
+        alphas = [i / 10 for i in range(1, 10)]
+    else:  # 0.01 sampai 0.99
+        alphas = [i / 100 for i in range(1, 100)]
     
     for alpha in alphas:
         calculation = calculate_forecast_with_alpha(data, alpha, years)
@@ -452,42 +488,20 @@ def process_single_size_forecast(ukuran_name, data, years):
         )
         # Tambahkan all_alpha_data ke result
         result['all_alpha_data'] = all_alpha_data
+        result['alpha_step'] = alpha_step  # Tambahkan info step
         return result
     
     return None
 
-def process_forecasting(ukuran_cols, df, tahun_col, years):
-    """Process forecasting for all size columns"""
-    results = []
-    chart_data = {}
-    all_calculations = {}
-    percentage_distribution = {}
-    
-    # Hitung distribusi persentase
-    percentage_distribution = calculate_percentage_distribution(df, tahun_col, ukuran_cols)
-    
-    for col in ukuran_cols:
-        try:
-            data = df[col].dropna().astype(float).tolist()
-            if len(data) < 2:
-                continue
-                
-            result = process_single_size_forecast(col, data, years)
-            if result:
-                results.append(result['result'])
-                chart_data[col] = result['chart_data']
-                all_calculations[col] = result['calculations']
-                
-        except (ValueError, TypeError) as e:
-            print(f"Error processing {col}: {str(e)}")
-            continue
-    
-    return results, chart_data, all_calculations, percentage_distribution
-
-def get_all_alpha_calculations_for_ukuran(ukuran_name, data, years):
-    """Mendapatkan semua perhitungan untuk semua alpha (0.1-0.9)"""
+def get_all_alpha_calculations_for_ukuran(ukuran_name, data, years, alpha_step=0.1):
+    """Mendapatkan semua perhitungan untuk semua alpha"""
     all_alpha_data = []
-    alphas = [i / 100 for i in range(1, 100)]
+    
+    # Tentukan alphas berdasarkan step
+    if alpha_step == 0.1:  # 0.1 sampai 0.9
+        alphas = [i / 10 for i in range(1, 10)]
+    else:  # 0.01 sampai 0.99
+        alphas = [i / 100 for i in range(1, 100)]
     
     for alpha in alphas:
         calculation = calculate_forecast_with_alpha(data, alpha, years)
@@ -635,6 +649,9 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
 def forecast(request):
     if request.method == 'POST':
         try:
+            # Get alpha step dari form
+            alpha_step = float(request.POST.get('alpha_step', '0.1'))
+            
             # Process input data
             df = process_input_data(request)
             if df is None:
@@ -649,9 +666,9 @@ def forecast(request):
                     'error': 'Tidak ada kolom ukuran yang valid.'
                 })
 
-            # Process forecasting for all sizes
+            # Process forecasting for all sizes dengan alpha_step yang dipilih
             results, chart_data, all_calculations, percentage_distribution = process_forecasting(
-                ukuran_cols, df, tahun_col, years
+                ukuran_cols, df, tahun_col, years, alpha_step
             )
             
             if not results:
@@ -659,10 +676,12 @@ def forecast(request):
                     'error': 'Tidak ada data yang dapat diproses untuk forecasting.'
                 })
             
-            # Prepare context
+            # Prepare context dengan info alpha_step
             context = prepare_context(
                 results, chart_data, years, all_calculations, percentage_distribution
             )
+            context['alpha_step'] = alpha_step
+            context['alpha_count'] = 99 if alpha_step == 0.01 else 9
             
             return render(request, 'forecasting/result.html', context)
 
