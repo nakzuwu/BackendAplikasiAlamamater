@@ -602,6 +602,49 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
             'forecast_next_mse': result['forecast_next_mse']
         }
     
+    # ========== TAMBAHAN BARU: Data untuk line chart ==========
+    actual_chart_data = {}
+    forecast_chart_data = {}
+    combined_chart_data = {}
+    
+    for result in results:
+        ukuran = result['ukuran']
+        
+        # Cari calculation terbaik untuk ukuran ini
+        if ukuran in all_calculations:
+            calculations = all_calculations[ukuran]
+            terbaik = alpha_terbaik_map.get(ukuran, {})
+            
+            # Cari calculation dengan alpha MAPE terbaik
+            best_alpha = terbaik.get('alpha_mape', 0.5)
+            best_calc = next(
+                (calc for calc in calculations if abs(calc.get('alpha', 0) - best_alpha) < 0.0001),
+                calculations[0] if calculations else None
+            )
+            
+            if best_calc:
+                # Ambil data aktual dari calculation
+                actual_values = best_calc.get('actual_values', [])
+                forecast_values = best_calc.get('forecast_values', [])
+                
+                # Simpan untuk grafik
+                actual_chart_data[ukuran] = actual_values
+                
+                # Forecast data + prediksi tahun berikutnya
+                if forecast_values:
+                    forecast_with_prediction = forecast_values + [result['forecast_next']]
+                    forecast_chart_data[ukuran] = forecast_with_prediction
+                else:
+                    forecast_chart_data[ukuran] = []
+                
+                # Gabungkan untuk chart lama (backward compatibility)
+                if ukuran in chart_data:
+                    combined_chart_data[ukuran] = chart_data[ukuran]
+                else:
+                    combined_chart_data[ukuran] = forecast_with_prediction if forecast_values else []
+    
+    # ========== AKHIR TAMBAHAN ==========
+    
     # Prepare mae_best_results dan mse_best_results menggunakan data dari results
     for result in results:
         ukuran = result['ukuran']
@@ -740,9 +783,12 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
                 result['yearly_calculations_json'] = json.dumps(result['yearly_calculations'])
                 result['yearly_metrics_json'] = json.dumps(result['yearly_metrics'])
     
+    # ========== TAMBAHAN RETURN ==========
     return {
         'results': results,
-        'chart_data': chart_data,
+        'chart_data': chart_data,  # Data lama untuk kompatibilitas
+        'actual_chart_data': actual_chart_data,  # 🆕 Data aktual untuk line chart
+        'forecast_chart_data': forecast_chart_data,  # 🆕 Data forecast untuk line chart
         'years': years,
         'best_mape': best_mape_all,
         'all_calculations': all_calculations,
@@ -753,7 +799,7 @@ def prepare_context(results, chart_data, years, all_calculations, percentage_dis
         'dist_years': dist_years,
         'dist_data': dist_data
     }
-    
+
 def forecast(request):
     if request.method == 'POST':
         try:
