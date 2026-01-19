@@ -451,24 +451,25 @@
                         {% endif %}
                     </td>
                     <td>
-<button class="btn btn-sm btn-outline-info" 
-        onclick='showAllCalculations(
-            "{{ r.ukuran }}", 
-            {{ r.alpha_mape }},
-            {{ r.actual_last }}, 
-            {{ r.forecast_last }}, 
-            {{ r.forecast_next }}, 
-            {{ r.mape }},
-            {{ r.mae }},
-            {{ r.mse }},
-            "MAPE",
-            {{ r.yearly_calculations_json|safe }},
-            {{ r.yearly_metrics_json|safe }},
-            {{ r.all_alpha_data_json|safe }},
-            {{ alpha_step }}
-        )'>
-    <i class="bi bi-calculator me-1"></i>Lihat Detail
-</button>
+                    <button class="btn btn-sm btn-outline-info" 
+                            onclick='showAllCalculations(
+                                "{{ r.ukuran }}", 
+                                {{ r.alpha_mape }},
+                                {{ r.actual_last }}, 
+                                {{ r.forecast_last|default:0 }}, 
+                                {{ r.forecast_next }}, 
+                                {{ r.mape }},
+                                {{ r.mae }},
+                                {{ r.mse }},
+                                "MAPE",
+            {{ r.yearly_calculations_json|default:"[]"|safe }},
+            {{ r.yearly_metrics_json|default:"[]"|safe }},
+            {{ r.all_alpha_data_json|default:"[]"|safe }},
+                                {{ alpha_step }}
+                            )'>
+                        <i class="bi bi-calculator me-1"></i>Lihat Detail
+                    </button>
+
                     </td>
                 </tr>
                 {% endfor %}
@@ -938,24 +939,34 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
                             mape, mae, mse, metricType, 
                             yearlyCalculationsJson, yearlyMetricsJson, allAlphasDataJson, alphaStep = 0.1) {
     
-    // STEP 1: Close existing modal and cleanup
-    if (currentModal) {
-        try {
-            currentModal.hide();
-            currentModal.dispose();
-            currentModal = null;
-        } catch (e) {
-            console.log('Modal cleanup:', e);
+    // ==================== STEP 1: PREPARE MODAL ====================
+    // Pastikan modal utama dihapus jika ada duplikat
+    const existingModal = document.getElementById('calculationModal');
+    if (existingModal) {
+        // Coba tutup modal yang aktif
+        const bsModal = bootstrap.Modal.getInstance(existingModal);
+        if (bsModal) {
+            bsModal.hide();
+            bsModal.dispose();
         }
         
-        // Remove backdrops
+        // Hapus dari DOM setelah delay singkat
+        setTimeout(() => {
+            if (existingModal.parentNode) {
+                existingModal.remove();
+            }
+        }, 100);
+    }
+    
+    // Hapus semua backdrop yang mungkin tersisa
+    setTimeout(() => {
         document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
         document.body.style.paddingRight = '';
-    }
+    }, 50);
     
-    // STEP 2: Parse JSON data
+    // ==================== STEP 2: PARSE DATA ====================
     let yearlyCalculations = [];
     let yearlyMetrics = [];
     let allAlphasData = [];
@@ -978,7 +989,7 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         return;
     }
     
-    // STEP 3: Validate parameters
+    // Validasi parameter
     alpha = roundNumber(alpha || 0, 2);
     actualLast = roundNumber(actualLast || 0);
     forecastLast = roundNumber(forecastLast || 0);
@@ -991,14 +1002,12 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
     
     const alphaDisplay = formatAlphaDisplay(alpha, alphaStep);
     
-    // STEP 4: Build HTML content
+    // ==================== STEP 3: BUILD HTML CONTENT ====================
     const cardStyle = "background: #f8f9fa; border-left: 4px solid #58a6ff; padding: 15px; margin: 10px 0; border-radius: 8px; color: #212529;";
-    const stepStyle = "background: #e9ecef; padding: 10px; border-radius: 6px; margin: 5px 0; border-left: 3px solid #3fb950; color: #212529;";
     const tableHeaderStyle = "background-color: #198754; color: white;";
     const textInfoStyle = "color: #0dcaf0 !important;";
     const textWarningStyle = "color: #ffc107 !important;";
     const textDangerStyle = "color: #dc3545 !important;";
-    const textSuccessStyle = "color: #198754 !important;";
     
     let html = `
         <div style="${cardStyle}">
@@ -1188,57 +1197,95 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         </div>
     `;
 
-    // STEP 5: Update DOM
-    const detailsElement = document.getElementById('calculationDetails');
-    if (!detailsElement) {
-        console.error('calculationDetails not found!');
-        return;
-    }
-    detailsElement.innerHTML = html;
-    
-    // STEP 6: Get modal element
-    const modalElement = document.getElementById('calculationModal');
-    if (!modalElement) {
-        console.error('calculationModal not found!');
-        return;
-    }
-    
-    // STEP 7: Style modal
-    const modalContent = modalElement.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.style.backgroundColor = '#ffffff';
-        modalContent.style.color = '#212529';
-    }
-    
-    // STEP 8: Show modal with delay to prevent blinking
+    // ==================== STEP 4: UPDATE MODAL CONTENT ====================
+    // Gunakan modal yang sudah ada di template, jangan membuat baru
     setTimeout(() => {
-        try {
-            currentModal = new bootstrap.Modal(modalElement, {
+        const modalElement = document.getElementById('calculationModal');
+        
+        // Jika modal tidak ada (sudah dihapus), buat ulang
+        if (!modalElement) {
+            // Buat modal baru berdasarkan template HTML yang sudah ada
+            const newModalHTML = `
+                <div class="modal fade" id="calculationModal" tabindex="-1" 
+                     data-bs-backdrop="static" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content" style="background-color: #ffffff; color: #212529;">
+                            <div class="modal-header" style="background-color: #0d6efd; color: white;">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-calculator me-2"></i>Detail Perhitungan Forecasting
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" 
+                                        data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="calculationDetails" 
+                                 style="background-color: #ffffff; color: #212529; max-height: 70vh; overflow-y: auto;">
+                            </div>
+                            <div class="modal-footer" style="background-color: #f8f9fa;">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle me-1"></i>Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const container = document.createElement('div');
+            container.innerHTML = newModalHTML;
+            document.body.appendChild(container.firstElementChild);
+        }
+        
+        // Update konten modal
+        const detailsElement = document.getElementById('calculationDetails');
+        if (detailsElement) {
+            detailsElement.innerHTML = html;
+        }
+        
+        // Tampilkan modal
+        const finalModalElement = document.getElementById('calculationModal');
+        if (finalModalElement) {
+            // Dispose modal yang mungkin masih aktif
+            const existingBsModal = bootstrap.Modal.getInstance(finalModalElement);
+            if (existingBsModal) {
+                existingBsModal.dispose();
+            }
+            
+            // Inisialisasi modal baru
+            currentModal = new bootstrap.Modal(finalModalElement, {
                 backdrop: 'static',
                 keyboard: true,
                 focus: true
             });
             
-            currentModal.show();
-            
-            // Cleanup on hide
-            modalElement.addEventListener('hidden.bs.modal', function () {
+            // Tampilkan modal dengan sedikit delay untuk menghindari blinking
+            setTimeout(() => {
                 if (currentModal) {
-                    currentModal.dispose();
+                    currentModal.show();
+                }
+            }, 100);
+            
+            // Cleanup saat modal ditutup
+            finalModalElement.addEventListener('hidden.bs.modal', function () {
+                if (currentModal) {
+                    try {
+                        currentModal.dispose();
+                    } catch (e) {
+                        // Ignore errors
+                    }
                     currentModal = null;
                 }
-                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
+                
+                // Reset body state
+                setTimeout(() => {
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 50);
             }, { once: true });
-            
-        } catch (error) {
-            console.error('Error showing modal:', error);
         }
-    }, 150); // Delay prevents blinking
+    }, 150); // Delay untuk memastikan cleanup selesai
 }
-
 // ============================================================================
 // CHARTS AND OTHER CODE - DOM READY
 // ============================================================================
