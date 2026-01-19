@@ -1088,65 +1088,93 @@ function showAllCalculations(ukuran, alpha, actualLast, forecastLast, forecastNe
         `;
     }
 
-    // Yearly calculations - MODIFIKASI: Tambahkan pembulatan 2 angka
-    if (yearlyCalculations && yearlyCalculations.length > 0) {
-        html += `
-            <div style="${cardStyle}">
-                <h6 style="color: #ffc107;">📋 Detail Perhitungan Forecast dengan Alpha ${alphaDisplay}</h6>
-                <div class="alert alert-warning" style="background-color: #fff3cd; border-color: #ffecb5; color: #664d03;">
-                    <i class="bi bi-calculator me-2"></i>
-                    <strong>Rumus:</strong> F<sub>t</sub> = α × A<sub>t-1</sub> + (1-α) × F<sub>t-1</sub>
-                </div>
-                <div class="table-responsive mt-2">
-                    <table class="table table-sm table-bordered" style="color: #212529;">
-                        <thead style="background-color: #ffc107; color: #212529;">
-                            <tr>
-                                <th>Tahun</th>
-                                <th>Aktual</th>
-                                <th>Forecast</th>
-                                <th>Perhitungan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        `;
-        
-        yearlyCalculations.forEach(calc => {
-            // Format perhitungan dengan pembulatan 2 angka
-let calculationDisplay = '-';
-
-if (calc.calculation) {
-    let str = String(calc.calculation);
-
-    // Ambil semua angka (termasuk floating error)
-    const numbers = str.match(/-?\d+(\.\d+)?/g);
-
-    if (numbers) {
-        numbers.forEach(num => {
-            const fixed = formatFixed(num, 2);
-            str = str.replace(num, fixed);
-        });
-    }
-
-    calculationDisplay = str;
-}
-            
-            html += `
-                <tr>
-                    <td><strong>${calc.tahun || '-'}</strong></td>
-                    <td>${formatNumber(calc.actual)}</td>
-                    <td>${formatNumber(calc.forecast, 2)}</td>
-                    <td><small style="font-family: 'Courier New', monospace;">${calculationDisplay}</small></td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                        </tbody>
-                    </table>
-                </div>
+// Yearly calculations - MODIFIKASI: Tambahkan pembulatan 2 angka tanpa .00
+if (yearlyCalculations && yearlyCalculations.length > 0) {
+    html += `
+        <div style="${cardStyle}">
+            <h6 style="color: #ffc107;">📋 Detail Perhitungan Forecast dengan Alpha ${alphaDisplay}</h6>
+            <div class="alert alert-warning" style="background-color: #fff3cd; border-color: #ffecb5; color: #664d03;">
+                <i class="bi bi-calculator me-2"></i>
+                <strong>Rumus:</strong> F<sub>t</sub> = α × A<sub>t-1</sub> + (1-α) × F<sub>t-1</sub>
             </div>
+            <div class="table-responsive mt-2">
+                <table class="table table-sm table-bordered" style="color: #212529;">
+                    <thead style="background-color: #ffc107; color: #212529;">
+                        <tr>
+                            <th>Tahun</th>
+                            <th>Aktual</th>
+                            <th>Forecast</th>
+                            <th>Perhitungan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    yearlyCalculations.forEach(calc => {
+        // Format perhitungan dengan pembulatan 2 angka tanpa .00 jika tidak perlu
+        let calculationDisplay = '-';
+        
+        if (calc.calculation) {
+            let str = String(calc.calculation);
+            
+            // Helper function untuk format angka tanpa .00
+            const formatNumberClean = (numStr) => {
+                const num = parseFloat(numStr);
+                if (isNaN(num)) return numStr;
+                
+                // Jika angka sudah bulat, kembalikan tanpa desimal
+                if (num === Math.floor(num)) {
+                    return num.toString();
+                }
+                
+                // Jika ada .00, .0, dll, hapus trailing zeros
+                const rounded = Math.round(num * 100) / 100;
+                const str = rounded.toFixed(2);
+                
+                // Hapus trailing zeros
+                if (str.endsWith('.00')) {
+                    return str.slice(0, -3);
+                } else if (str.endsWith('0')) {
+                    return str.slice(0, -1);
+                }
+                return str;
+            };
+            
+            // Ambil semua angka dalam string
+            const numbers = str.match(/-?\d+(\.\d+)?/g);
+            
+            if (numbers) {
+                // Urutkan dari yang terpanjang ke terpendek untuk menghindari partial replacement
+                const sortedNumbers = [...numbers].sort((a, b) => b.length - a.length);
+                
+                sortedNumbers.forEach(num => {
+                    const formatted = formatNumberClean(num);
+                    // Gunakan regex dengan word boundaries untuk replacement yang tepat
+                    const regex = new RegExp(`\\b${num.replace('.', '\\.')}\\b`, 'g');
+                    str = str.replace(regex, formatted);
+                });
+            }
+            
+            calculationDisplay = str;
+        }
+        
+        html += `
+            <tr>
+                <td><strong>${calc.tahun || '-'}</strong></td>
+                <td>${formatNumber(calc.actual, 0)}</td>
+                <td>${formatNumber(calc.forecast, 2, true)}</td> <!-- true untuk clean format -->
+                <td><small style="font-family: 'Courier New', monospace;">${calculationDisplay}</small></td>
+            </tr>
         `;
-    }
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
 
     // Yearly metrics - MODIFIKASI: Tambahkan pembulatan 2 angka
     if (yearlyMetrics && yearlyMetrics.length > 0) {
@@ -1211,21 +1239,82 @@ if (calc.calculation) {
         badgeStyle = 'background-color: #fff3cd; border-color: #ffecb5; color: #664d03;';
         metricName = 'MSE (Mean Squared Error)';
     }
+        // 4. PERHITUNGAN FORECAST TAHUN BERIKUTNYA
+    // Hitung dengan pembulatan 2 desimal
+    const roundedAlpha = roundNumber(alpha, 2);
+    const textSuccessStyle = "color: #198754 !important;";
+     const stepStyle = "background: #e9ecef; padding: 10px; border-radius: 6px; margin: 5px 0; border-left: 3px solid #3fb950; color: #212529;";
+    const roundedOneMinusAlpha = roundNumber(1 - alpha, 2);
+    const part1 = roundNumber(alpha * actualLast, 2);
+    const part2 = roundNumber((1 - alpha) * forecastLast, 2);
+    const calculatedForecast = roundNumber(part1 + part2, 2);
     
-    // MODIFIKASI: Format forecastNext dengan 2 desimal
     html += `
-        <div class="alert mt-3" style="${badgeStyle}">
+        <div style="${cardStyle}">
+            <h6 style="${textSuccessStyle}">🔮 Perhitungan Forecast Tahun Berikutnya</h6>
+            <div style="${stepStyle}">
+                <strong>Rumus:</strong> F<sub>t+1</sub> = α × A<sub>t</sub> + (1-α) × F<sub>t</sub>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div style="${stepStyle}">
+                        <strong>Nilai Variabel:</strong><br>
+                        <table class="table table-sm">
+                            <tr><td>Alpha (α)</td><td><strong>= ${roundedAlpha}</strong></td></tr>
+                            <tr><td>1 - α</td><td><strong>= ${roundedOneMinusAlpha}</strong></td></tr>
+                            <tr><td>Aktual Terakhir (A<sub>t</sub>)</td><td><strong>= ${formatNumber(actualLast)}</strong></td></tr>
+                            <tr><td>Forecast Terakhir (F<sub>t</sub>)</td><td><strong>= ${formatNumber(forecastLast)}</strong></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="${stepStyle}">
+                        <strong>Langkah Perhitungan:</strong><br>
+                        1. F<sub>t+1</sub> = ${roundedAlpha} × ${formatNumber(actualLast)} + ${roundedOneMinusAlpha} × ${formatNumber(forecastLast)}<br>
+                        2. F<sub>t+1</sub> = ${formatNumber(part1)} + ${formatNumber(part2)}<br>
+                        3. F<sub>t+1</sub> = <strong style="${textSuccessStyle}">${formatNumber(calculatedForecast)}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 5. KESIMPULAN
+    let badgeClass = 'success';
+    // let badgeStyle = 'background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;';
+    // let metricName = '';
+    
+    if (metricType === 'MAPE') {
+        badgeClass = 'success';
+        badgeStyle = 'background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;';
+        metricName = 'MAPE (Mean Absolute Percentage Error)';
+    } else if (metricType === 'MAE') {
+        badgeClass = 'info';
+        badgeStyle = 'background-color: #cff4fc; border-color: #b6effb; color: #055160;';
+        metricName = 'MAE (Mean Absolute Error)';
+    } else {
+        badgeClass = 'warning';
+        badgeStyle = 'background-color: #fff3cd; border-color: #ffecb5; color: #664d03;';
+        metricName = 'MSE (Mean Squared Error)';
+    }
+    
+    // Hitung total alpha yang diuji
+    const totalAlphaTested = allAlphasData.length;
+    
+    html += `
+        <div class="alert alert-${badgeClass} mt-3" style="${badgeStyle}">
             <i class="bi bi-trophy-fill me-2"></i>
             <strong>Kesimpulan:</strong><br>
             Alpha <strong>${alphaDisplay}</strong> dipilih karena memberikan nilai 
-            <strong>${metricType} terkecil</strong> (${metricName}) untuk ukuran ${ukuran}.
+            <strong>${metricType} terkecil</strong> (${metricName}) untuk ukuran ${ukuran}.<br>
+            <small>Dari ${totalAlphaTested} kombinasi alpha yang diuji (${allAlphasData.length >= 99 ? '0.01 - 0.99' : 'berbagai nilai alpha'})</small>
         </div>
 
         <div class="alert alert-success mt-3" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
             <i class="bi bi-check-circle-fill me-2"></i>
             <strong>Hasil Prediksi:</strong><br>
             Forecast kebutuhan untuk ukuran ${ukuran} adalah 
-            <strong>${formatNumber(forecastNext, 2)} unit</strong>.
+            <strong>${formatNumber(forecastNext)} unit</strong>.
         </div>
     `;
 
@@ -2047,9 +2136,9 @@ function generatePDFWithData() {
             pdf.text('MAPE%', margin + 40, yPosition + 4);
             pdf.text('MAE', margin + 60, yPosition + 4);
             pdf.text('MSE', margin + 80, yPosition + 4);
-            pdf.text('Aktual', margin + 100, yPosition + 4);
             pdf.text('Forecast', margin + 120, yPosition + 4);
-            pdf.text('Trend', margin + 150, yPosition + 4);
+             pdf.text('Tahun', margin + 100, yPosition + 4);
+            // pdf.text('Trend', margin + 150, yPosition + 4);
             
             yPosition += 8;
             
@@ -2068,9 +2157,9 @@ function generatePDFWithData() {
             pdf.text('{{ r.mape }}%', margin + 40, yPosition);
             pdf.text('{{ r.mae }}', margin + 60, yPosition);
             pdf.text('{{ r.mse }}', margin + 80, yPosition);
-            pdf.text('{{ r.actual_last }}', margin + 100, yPosition);
             pdf.text('{{ r.forecast_next }}', margin + 120, yPosition);
-            pdf.text('{{ r.forecast_trend }}', margin + 150, yPosition);
+            pdf.text('{{ r.tahun_next }}', margin + 100, yPosition);
+            // pdf.text('{{ r.forecast_trend }}', margin + 150, yPosition);
             
             yPosition += 5;
             {% endfor %}
@@ -2099,9 +2188,9 @@ function generatePDFWithData() {
             pdf.text('MAPE%', margin + 40, yPosition + 4);
             pdf.text('MAE', margin + 60, yPosition + 4);
             pdf.text('MSE', margin + 80, yPosition + 4);
-            pdf.text('Aktual', margin + 100, yPosition + 4);
             pdf.text('Forecast', margin + 120, yPosition + 4);
-            pdf.text('Trend', margin + 150, yPosition + 4);
+            pdf.text('Tahun', margin + 100, yPosition + 4);
+            // pdf.text('Trend', margin + 150, yPosition + 4);
             
             yPosition += 8;
             
@@ -2120,9 +2209,9 @@ function generatePDFWithData() {
             pdf.text('{{ r.mape }}%', margin + 40, yPosition);
             pdf.text('{{ r.mae }}', margin + 60, yPosition);
             pdf.text('{{ r.mse }}', margin + 80, yPosition);
-            pdf.text('{{ r.actual_last }}', margin + 100, yPosition);
             pdf.text('{{ r.forecast_next }}', margin + 120, yPosition);
-            pdf.text('{{ r.forecast_trend }}', margin + 150, yPosition);
+            pdf.text('{{ r.tahun_next }}', margin + 100, yPosition);
+            // pdf.text('{{ r.forecast_trend }}', margin + 150, yPosition);
             
             yPosition += 5;
             {% endfor %}
@@ -2151,9 +2240,9 @@ function generatePDFWithData() {
             pdf.text('MAPE%', margin + 40, yPosition + 4);
             pdf.text('MAE', margin + 60, yPosition + 4);
             pdf.text('MSE', margin + 80, yPosition + 4);
-            pdf.text('Aktual', margin + 100, yPosition + 4);
             pdf.text('Forecast', margin + 120, yPosition + 4);
-            pdf.text('Trend', margin + 150, yPosition + 4);
+            pdf.text('Tahun', margin + 100, yPosition + 4);
+            // pdf.text('Trend', margin + 150, yPosition + 4);
             
             yPosition += 8;
             
@@ -2172,9 +2261,10 @@ function generatePDFWithData() {
             pdf.text('{{ r.mape }}%', margin + 40, yPosition);
             pdf.text('{{ r.mae }}', margin + 60, yPosition);
             pdf.text('{{ r.mse }}', margin + 80, yPosition);
-            pdf.text('{{ r.actual_last }}', margin + 100, yPosition);
             pdf.text('{{ r.forecast_next }}', margin + 120, yPosition);
-            pdf.text('{{ r.forecast_trend }}', margin + 150, yPosition);
+            pdf.text('{{ r.tahun_next }}', margin + 100, yPosition);
+            
+            // pdf.text('{{ r.forecast_trend }}', margin + 150, yPosition);
             
             yPosition += 5;
             {% endfor %}
